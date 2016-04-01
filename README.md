@@ -1,2 +1,6 @@
-# NER2
-Nested Entity Recognition (2) / Filmtitel
+# Movie Title Recognition
+
+## About the project
+
+## Code documentation
+http://www.filmtitel.xyz/docs/api/
