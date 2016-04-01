@@ -37,7 +37,7 @@ class API extends \rsCore\BaseTemplate implements APIInterface {
 	 * @return string
 	 */
 	public function build() {
-		new \Nightfever\API();
+		new \Site\API();
 	}
 
 
