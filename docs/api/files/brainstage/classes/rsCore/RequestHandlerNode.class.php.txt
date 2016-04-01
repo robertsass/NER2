@@ -1,0 +1,170 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface RequestHandlerNodeInterface {
+
+	static function createNode( $parentNodeInstanceOrId );
+	static function getChildrenByColumns( $parentNodeInstanceOrId, $columns );
+	static function getNodeByColumn( $column, $value, $allowMultipleResults, $sorting, $limit );
+	static function getNodeByColumns( $columns, $allowMultipleResults, $sorting, $limit );
+	static function getNodeById( $id );
+	static function getNodeByPrimaryKey( $primaryKey );
+
+	function getTemplateName();
+
+	function removeNode();
+
+	function getArray();
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class RequestHandlerNode extends \rsCore\DatabaseNestedSetDatasetAbstract implements RequestHandlerNodeInterface, \rsCore\CoreFrameworkInitializable {
+
+
+	protected static $_databaseTable = 'brainstage-url-tree';
+
+
+	/* CoreFrameworkInitializable methods */
+
+	/** Wird beim Autoloading dieser Klasse aufgerufen, um diese Klasse als DatabaseDatasetHandler zu registrieren
+	 * @internal
+	 */
+	public static function frameworkRegistration() {
+		\rsCore\Core::core()->registerDatabaseDatasetHandler( static::getDatabaseConnection(), '\\'. __CLASS__ );
+	}
+
+
+	/* Static methods */
+
+	/** Fügt ein neues Blatt in den NestedSet ein
+	 * @param mixed $parentNodeInstanceOrId
+	 * @return Node Node-Instanz oder null
+	 * @api
+	 */
+	public static function createNode( $parentNodeInstanceOrId ) {
+		try {
+			if( is_object( $parentNodeInstanceOrId ) )
+				$ParentNode = $parentNodeInstanceOrId;
+			else
+				$ParentNode = self::getById( $parentNodeInstanceOrId );
+			return $ParentNode->createChild();
+		} catch( Exception $Exception ) {
+			return null;
+		}
+	}
+
+
+	/** Sucht einen Kindknoten anhand seiner Spalten
+	 * @param mixed $parentNodeInstanceOrId
+	 * @param array $columns Spaltennamen und ihre Sollwerte
+	 * @return mixed Node-Instanz oder Array von Instanzen
+	 * @api
+	 */
+	public static function getChildrenByColumns( $parentNodeInstanceOrId, $columns ) {
+		return static::getDatabaseConnection()->getChildrenByColumns( $parentNodeInstanceOrId, $columns );
+	}
+
+
+	/** Sucht ein Blatt anhand einer Spalte
+	 * @param string $column Spalte
+	 * @param string $value Sollwert
+	 * @param boolean $allowMultipleResults
+	 * @param array $sorting Spalten und ihre Ordnung (ASC/DESC)
+	 * @param int $limit Maximale Anzahl
+	 * @return mixed Node-Instanz oder Array von Instanzen
+	 * @api
+	 */
+	public static function getNodeByColumn( $column, $value, $allowMultipleResults, $sorting, $limit ) {
+		return static::getByColumn( $column, $value, $allowMultipleResults, $sorting, $limit );
+	}
+
+
+	/** Sucht ein Dokument anhand diverser Spalten
+	 * @param array $columns Spaltennamen und ihre Sollwerte
+	 * @param boolean $allowMultipleResults
+	 * @param array $sorting Spalten und ihre Ordnung (ASC/DESC)
+	 * @param int $limit Maximale Anzahl
+	 * @return mixed Node-Instanz oder Array von Instanzen
+	 * @api
+	 */
+	public static function getNodeByColumns( $columns, $allowMultipleResults, $sorting, $limit ) {
+		return static::getByColumns( $columns, $allowMultipleResults, $sorting, $limit );
+	}
+
+
+	/** Sucht ein Dokument anhand seiner ID (faktisch kein Unterschied zu getByPrimaryKey())
+	 * @param int $id Die ID
+	 * @return Node
+	 * @api
+	 */
+	public static function getNodeById( $id ) {
+		return static::getById( $id );
+	}
+
+
+	/** Sucht ein Dokument anhand seines Primärschlüssels
+	 * @param int $primaryKey Der Primärschlüssel
+	 * @return Node
+	 * @api
+	 */
+	public static function getNodeByPrimaryKey( $primaryKey ) {
+		return static::getByPrimaryKey( $primaryKey );
+	}
+
+
+	/** Konstruktor
+	 * @return void
+	 * @api
+	 */
+	protected function init() {
+		parent::init();
+	}
+
+
+	/** Gibt eine Instanz des zugehörigen Templates zurück
+	 * @return object
+	 * @api
+	 */
+	public function getTemplateName() {
+		return $this->templateName;
+	}
+
+
+	/** Löscht den Knoten mitsamt aller Zugehörigkeiten
+	 * @return boolean
+	 * @api
+	 * @todo Implementieren! Lösche alle Versionen, Tags und alle Referenzen auf dieses Dokument (URL-Targets usw.)
+	 */
+	public function removeNode() {
+		return $this->remove();
+	}
+
+
+	/** Gibt eine Array-Repräsentation zurück
+	 * @return array
+	 * @api
+	 */
+	public function getArray() {
+		return $this->getColumns();
+	}
+
+
+}

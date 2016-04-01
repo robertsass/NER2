@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
+
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
+
+            pre.textContent = '';
+
+            code.textContent = 'Loading…';
+
+            pre.appendChild(code);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', src, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
+
+                        Prism.highlightElement(code);
+                    }
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
+
+            xhr.send(null);
+        });
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/Brainstage.html">\Brainstage</a></li>
+                                                        <li><a href="../namespaces/Features.html">\Features</a></li>
+                                                        <li><a href="../namespaces/Formatter.html">\Formatter</a></li>
+                                                        <li><a href="../namespaces/Plugins.html">\Plugins</a></li>
+                                                        <li><a href="../namespaces/rsCore.html">\rsCore</a></li>
+                                                        <li><a href="../namespaces/Site.html">\Site</a></li>
+                                                        <li><a href="../namespaces/Templates.html">\Templates</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">3157</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">36</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-566819956"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-566819956" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-169064018"></a>
+                                <a href="../namespaces/Brainstage.html" style="margin-left: 30px; padding-left: 0">Brainstage</a>
+            </div>
+            <div id="namespace-169064018" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1240591814"></a>
+                                <a href="../namespaces/Brainstage.Plugins.html" style="margin-left: 30px; padding-left: 0">Plugins</a>
+            </div>
+            <div id="namespace-1240591814" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-137247294"></a>
+                                <a href="../namespaces/Brainstage.Plugins.Dashboard.html" style="margin-left: 30px; padding-left: 0">Dashboard</a>
+            </div>
+            <div id="namespace-137247294" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Dashboard.DiskCapacity.html">DiskCapacity</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Dashboard.Plugin.html">Plugin</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1618514100"></a>
+                                <a href="../namespaces/Brainstage.Plugins.Settings.html" style="margin-left: 30px; padding-left: 0">Settings</a>
+            </div>
+            <div id="namespace-1618514100" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Settings.General.html">General</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Settings.Plugin.html">Plugin</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Settings.Plugins.html">Plugins</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Dashboard.html">Dashboard</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Documents.html">Documents</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Exceptions.html">Exceptions</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.InternalTranslation.html">InternalTranslation</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Languages.html">Languages</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Media.html">Media</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Settings.html">Settings</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Translation.html">Translation</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugins.Users.html">Users</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1845815505"></a>
+                                <a href="../namespaces/Brainstage.Templates.html" style="margin-left: 30px; padding-left: 0">Templates</a>
+            </div>
+            <div id="namespace-1845815505" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Brainstage.Templates.API.html">API</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Templates.Auth.html">Auth</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Templates.Base.html">Base</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Brainstage.API.html">API</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Brainstage.html">Brainstage</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Cron.html">Cron</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.CronRun.html">CronRun</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.DictionaryTranslation.html">DictionaryTranslation</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Document.html">Document</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.DocumentPathComponent.html">DocumentPathComponent</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.DocumentTag.html">DocumentTag</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.DocumentVersion.html">DocumentVersion</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.ExceptionLog.html">ExceptionLog</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.File.html">File</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Group.html">Group</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.GroupRight.html">GroupRight</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.InternalDictionary.html">InternalDictionary</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.InternalDictionaryTranslation.html">InternalDictionaryTranslation</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Language.html">Language</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Plugin.html">Plugin</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Right.html">Right</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Setting.html">Setting</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.SettingBoolean.html">SettingBoolean</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.SettingMixed.html">SettingMixed</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.SettingText.html">SettingText</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.Tag.html">Tag</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.User.html">User</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.UserGroup.html">UserGroup</a></li>
+                                                    <li class="class"><a href="../classes/Brainstage.UserRight.html">UserRight</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-700153583"></a>
+                                <a href="../namespaces/Features.html" style="margin-left: 30px; padding-left: 0">Features</a>
+            </div>
+            <div id="namespace-700153583" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Features.PluginInterface.html">PluginInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Features.ContainsSignalWords.html">ContainsSignalWords</a></li>
+                                                    <li class="class"><a href="../classes/Features.DistanceSignalWords.html">DistanceSignalWords</a></li>
+                                                    <li class="class"><a href="../classes/Features.IsCapital.html">IsCapital</a></li>
+                                                    <li class="class"><a href="../classes/Features.IsMovieTitle.html">IsMovieTitle</a></li>
+                                                    <li class="class"><a href="../classes/Features.IsUpperCase.html">IsUpperCase</a></li>
+                                                    <li class="class"><a href="../classes/Features.IsWrappedByQuotes.html">IsWrappedByQuotes</a></li>
+                                                    <li class="class"><a href="../classes/Features.LeftDistanceSignalWords.html">LeftDistanceSignalWords</a></li>
+                                                    <li class="class"><a href="../classes/Features.Plugin.html">Plugin</a></li>
+                                                    <li class="class"><a href="../classes/Features.POSTag.html">POSTag</a></li>
+                                                    <li class="class"><a href="../classes/Features.RightDistanceSignalWords.html">RightDistanceSignalWords</a></li>
+                                                    <li class="class"><a href="../classes/Features.SentenceIndex.html">SentenceIndex</a></li>
+                                                    <li class="class"><a href="../classes/Features.TreeAnnotation.html">TreeAnnotation</a></li>
+                                                    <li class="class"><a href="../classes/Features.Word.html">Word</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1477649908"></a>
+                                <a href="../namespaces/Formatter.html" style="margin-left: 30px; padding-left: 0">Formatter</a>
+            </div>
+            <div id="namespace-1477649908" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Formatter.ARFFInterface.html">ARFFInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Formatter.ARFF.html">ARFF</a></li>
+                                                    <li class="class"><a href="../classes/Formatter.SpaceSeparated.html">SpaceSeparated</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1784815736"></a>
+                                <a href="../namespaces/Plugins.html" style="margin-left: 30px; padding-left: 0">Plugins</a>
+            </div>
+            <div id="namespace-1784815736" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Plugins.ConverterInterface.html">ConverterInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Plugins.Assistant.html">Assistant</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Backend.html">Backend</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.BlogArticles.html">BlogArticles</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.BookingRequests.html">BookingRequests</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Bookings.html">Bookings</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Clients.html">Clients</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Converter.html">Converter</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Crawler.html">Crawler</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Events.html">Events</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Feedbacks.html">Feedbacks</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Locations.html">Locations</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Movies.html">Movies</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Photos.html">Photos</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Quotes.html">Quotes</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Reviews.html">Reviews</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Sites.html">Sites</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Test.html">Test</a></li>
+                                                    <li class="class"><a href="../classes/Plugins.Videos.html">Videos</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1226562823"></a>
+                                <a href="../namespaces/rsCore.html" style="margin-left: 30px; padding-left: 0">rsCore</a>
+            </div>
+            <div id="namespace-1226562823" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-611222647"></a>
+                                <a href="../namespaces/rsCore.Creole.html" style="margin-left: 30px; padding-left: 0">Creole</a>
+            </div>
+            <div id="namespace-611222647" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/rsCore.Creole.creole.html">creole</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_node.html">creole_node</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule.html">creole_rule</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_default_fallback.html">creole_rule_default_fallback</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_extension.html">creole_rule_extension</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_image.html">creole_rule_image</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_named_interwiki_link.html">creole_rule_named_interwiki_link</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_named_link.html">creole_rule_named_link</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_named_uri.html">creole_rule_named_uri</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_unnamed_interwiki_link.html">creole_rule_unnamed_interwiki_link</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_unnamed_link.html">creole_rule_unnamed_link</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Creole.creole_rule_unnamed_uri.html">creole_rule_unnamed_uri</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/rsCore.CoreFrameworkInitializable.html">CoreFrameworkInitializable</a></li>
+                                                    <li class="interface"><a href="../classes/rsCore.DatabaseDatasetCachingInterface.html">DatabaseDatasetCachingInterface</a></li>
+                                                    <li class="interface"><a href="../classes/rsCore.DatabaseHandlerFactoryInterface.html">DatabaseHandlerFactoryInterface</a></li>
+                                                    <li class="interface"><a href="../classes/rsCore.NotReflectable.html">NotReflectable</a></li>
+                                                    <li class="interface"><a href="../classes/rsCore.Reflectable.html">Reflectable</a></li>
+                                                                                                    <li class="class"><a href="../classes/rsCore.API.html">API</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.APIFramework.html">APIFramework</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Auth.html">Auth</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.BaseTemplate.html">BaseTemplate</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Calendar.html">Calendar</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.ClassNotFoundException.html">ClassNotFoundException</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Container.html">Container</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Core.html">Core</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreClass.html">CoreClass</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreFiles.html">CoreFiles</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreFramework.html">CoreFramework</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreFrameworkHandlerFactory.html">CoreFrameworkHandlerFactory</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreFunctions.html">CoreFunctions</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CoreInit.html">CoreInit</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Countries.html">Countries</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Curl.html">Curl</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CurlRequest.html">CurlRequest</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CurlResponse.html">CurlResponse</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.CustomAPI.html">CustomAPI</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Database.html">Database</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseConnector.html">DatabaseConnector</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseConnectorMysql.html">DatabaseConnectorMysql</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseDataset.html">DatabaseDataset</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseDatasetAbstract.html">DatabaseDatasetAbstract</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseDatasetHandler.html">DatabaseDatasetHandler</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseDatasetWrapper.html">DatabaseDatasetWrapper</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseNestedSet.html">DatabaseNestedSet</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseNestedSetDataset.html">DatabaseNestedSetDataset</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DatabaseNestedSetDatasetAbstract.html">DatabaseNestedSetDatasetAbstract</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.DataClass.html">DataClass</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Dictionary.html">Dictionary</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.ErrorHandler.html">ErrorHandler</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Exception.html">Exception</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.File.html">File</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.FileManager.html">FileManager</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Framework.html">Framework</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.FrameworkHook.html">FrameworkHook</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Graphics.html">Graphics</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.HTML5Template.html">HTML5Template</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.HTMLTemplate.html">HTMLTemplate</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.HTTPConnector.html">HTTPConnector</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Localization.html">Localization</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.NotAuthorizedException.html">NotAuthorizedException</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.NotPrivilegedException.html">NotPrivilegedException</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.NotReflectableException.html">NotReflectableException</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Observable.html">Observable</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.ObserverSet.html">ObserverSet</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.PageBuilder.html">PageBuilder</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.PageHead.html">PageHead</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Plugin.html">Plugin</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.ProtectivePageHead.html">ProtectivePageHead</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.RequestHandler.html">RequestHandler</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.RequestHandlerNode.html">RequestHandlerNode</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.RequestHandlerRedirect.html">RequestHandlerRedirect</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.RequestHandlerRule.html">RequestHandlerRule</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.RequestPath.html">RequestPath</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.StringUtils.html">StringUtils</a></li>
+                                                    <li class="class"><a href="../classes/rsCore.Useragent.html">Useragent</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-688239629"></a>
+                                <a href="../namespaces/Site.html" style="margin-left: 30px; padding-left: 0">Site</a>
+            </div>
+            <div id="namespace-688239629" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Site.API.html">API</a></li>
+                                                    <li class="class"><a href="../classes/Site.BlogArticle.html">BlogArticle</a></li>
+                                                    <li class="class"><a href="../classes/Site.BlogArticlePhoto.html">BlogArticlePhoto</a></li>
+                                                    <li class="class"><a href="../classes/Site.BlogArticleVersion.html">BlogArticleVersion</a></li>
+                                                    <li class="class"><a href="../classes/Site.Booking.html">Booking</a></li>
+                                                    <li class="class"><a href="../classes/Site.Calendar.html">Calendar</a></li>
+                                                    <li class="class"><a href="../classes/Site.CalendarEvent.html">CalendarEvent</a></li>
+                                                    <li class="class"><a href="../classes/Site.Client.html">Client</a></li>
+                                                    <li class="class"><a href="../classes/Site.CrawlerMovie.html">CrawlerMovie</a></li>
+                                                    <li class="class"><a href="../classes/Site.CrawlerReview.html">CrawlerReview</a></li>
+                                                    <li class="class"><a href="../classes/Site.CrawlerReviewSearch.html">CrawlerReviewSearch</a></li>
+                                                    <li class="class"><a href="../classes/Site.Document.html">Document</a></li>
+                                                    <li class="class"><a href="../classes/Site.Event.html">Event</a></li>
+                                                    <li class="class"><a href="../classes/Site.EventMeta.html">EventMeta</a></li>
+                                                    <li class="class"><a href="../classes/Site.Feedback.html">Feedback</a></li>
+                                                    <li class="class"><a href="../classes/Site.Photo.html">Photo</a></li>
+                                                    <li class="class"><a href="../classes/Site.PhotoAlbum.html">PhotoAlbum</a></li>
+                                                    <li class="class"><a href="../classes/Site.PhotoAlbumMeta.html">PhotoAlbumMeta</a></li>
+                                                    <li class="class"><a href="../classes/Site.Quote.html">Quote</a></li>
+                                                    <li class="class"><a href="../classes/Site.Review.html">Review</a></li>
+                                                    <li class="class"><a href="../classes/Site.Tools.html">Tools</a></li>
+                                                    <li class="class"><a href="../classes/Site.ToolsBackend.html">ToolsBackend</a></li>
+                                                    <li class="class"><a href="../classes/Site.ToolsFrontend.html">ToolsFrontend</a></li>
+                                                    <li class="class"><a href="../classes/Site.User.html">User</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-702769926"></a>
+                                <a href="../namespaces/Templates.html" style="margin-left: 30px; padding-left: 0">Templates</a>
+            </div>
+            <div id="namespace-702769926" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Templates.Anfrage.html">Anfrage</a></li>
+                                                    <li class="class"><a href="../classes/Templates.API.html">API</a></li>
+                                                    <li class="class"><a href="../classes/Templates.Base.html">Base</a></li>
+                                                    <li class="class"><a href="../classes/Templates.Homepage.html">Homepage</a></li>
+                                                    <li class="class"><a href="../classes/Templates.HomepageBase.html">HomepageBase</a></li>
+                                                    <li class="class"><a href="../classes/Templates.InternationalHomepage.html">InternationalHomepage</a></li>
+                                                    <li class="class"><a href="../classes/Templates.Kalender.html">Kalender</a></li>
+                                                    <li class="class"><a href="../classes/Templates.NationalBase.html">NationalBase</a></li>
+                                                    <li class="class"><a href="../classes/Templates.NationalContactform.html">NationalContactform</a></li>
+                                                    <li class="class"><a href="../classes/Templates.NationalHomepage.html">NationalHomepage</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalContactform.html">RegionalContactform</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalEvents.html">RegionalEvents</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalHomepageSection.html">RegionalHomepageSection</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalLinks.html">RegionalLinks</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalLocation.html">RegionalLocation</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalPhotoGallery.html">RegionalPhotoGallery</a></li>
+                                                    <li class="class"><a href="../classes/Templates.RegionalQuotes.html">RegionalQuotes</a></li>
+                                                    <li class="class"><a href="../classes/Templates.SiteBase.html">SiteBase</a></li>
+                                                    <li class="class"><a href="../classes/Templates.WebmasterSignup.html">WebmasterSignup</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Autoload.html">Autoload</a></li>
+                                                    <li class="class"><a href="../classes/GeoCoder.html">GeoCoder</a></li>
+                                                    <li class="class"><a href="../classes/PHPMailer.html">PHPMailer</a></li>
+                                                    <li class="class"><a href="../classes/phpmailerException.html">phpmailerException</a></li>
+                                                    <li class="class"><a href="../classes/POP3.html">POP3</a></li>
+                                                    <li class="class"><a href="../classes/rsAjaxCore.html">rsAjaxCore</a></li>
+                                                    <li class="class"><a href="../classes/rsBrainstage.html">rsBrainstage</a></li>
+                                                    <li class="class"><a href="../classes/rsCSV.html">rsCSV</a></li>
+                                                    <li class="class"><a href="../classes/rsCSVRow.html">rsCSVRow</a></li>
+                                                    <li class="class"><a href="../classes/rsDatabaseBasedDictionary.html">rsDatabaseBasedDictionary</a></li>
+                                                    <li class="class"><a href="../classes/rsDictionary.html">rsDictionary</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <nav>
+                                                <a href="../namespaces/default.html">\</a> <i class="icon-level-up"></i>
+                                            </nav>
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+
+                    <h1><small>\</small>phpmailerException</h1>
+                    <p><em></em></p>
+                    
+                    
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <a href="../classes/phpmailerException.html#method_errorMessage" class="">errorMessage()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No constants found</em>
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <em>No protected methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <em>No private methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No private properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
+                <aside class="span4 detailsbar">
+                                        
+                    
+                    <dl>
+                        <dt>File</dt>
+                            <dd><a href="../files/brainstage.classes.rsCore.PHPMailer.class.html"><div class="path-wrapper">brainstage/classes/rsCore/PHPMailer.class.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">PHPMailer</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                                                                                                                                                
+                                        <div class="namespace-wrapper">\Exception</div>
+                                                                                                    <div class="namespace-wrapper">\phpmailerException</div>
+                            </dd>
+
+                        
+                        
+                        
+                        
+                                                                        </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
+                </aside>
+            </div>
+
+                        
+                        
+                                    <a id="methods" name="methods"></a>
+            <div class="row-fluid">
+                <div class="span8 content class"><h2>Methods</h2></div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_errorMessage" name="method_errorMessage" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">errorMessage()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">errorMessage() </pre>
+                <p><em></em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                                    </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label">PHPMailer.class.php</h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/brainstage/classes/rsCore/PHPMailer.class.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/Brainstage.html">\Brainstage</a></li>
+                                                                            <li><a href="../namespaces/Features.html">\Features</a></li>
+                                                                            <li><a href="../namespaces/Formatter.html">\Formatter</a></li>
+                                                                            <li><a href="../namespaces/Plugins.html">\Plugins</a></li>
+                                                                            <li><a href="../namespaces/rsCore.html">\rsCore</a></li>
+                                                                            <li><a href="../namespaces/Site.html">\Site</a></li>
+                                                                            <li><a href="../namespaces/Templates.html">\Templates</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on April 1st, 2016 at 16:37.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

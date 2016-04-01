@@ -1,0 +1,68 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface ObserverSetInterface {
+
+	public function registerObserver( $Object );
+	public function unregisterObserver( $Object );
+	public function callObservers( $method, $params );
+	public function __call( $method, $params );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class ObserverSet implements ObserverSetInterface {
+
+
+	private $_observers;
+
+
+	public function __construct() {
+		$this->_observers = array();
+	}
+
+
+	public function registerObserver( $Object ) {
+		$objectId = spl_object_hash( $Object );
+		$this->_observers[ $objectId ] = $Object;
+	}
+
+
+	public function unregisterObserver( $Object ) {
+		$objectId = spl_object_hash( $Object );
+		if( array_key_exists( $objectId, $this->_observers ) )
+			unset( $this->_observers[ $objectId ] );
+	}
+
+
+	public function callObservers( $method, $params ) {
+		foreach( $this->_observers as $Observer ) {
+			if( is_callable( array( $Observer, $method ) ) )
+				Core::callMethod( $Observer, $method, $params );
+		}
+	}
+
+
+	public function __call( $method, $params ) {
+		$this->callObservers( $method, $params );
+	}
+
+
+}

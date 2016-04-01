@@ -1,0 +1,238 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Brainstage\Plugins;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface MediaInterface extends PluginInterface {
+}
+
+
+/** MediaPlugin
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends \rsCore\Plugin
+ */
+class Media extends \Brainstage\Plugin implements MediaInterface {
+
+
+	const DEFAULT_INTERVAL_SIZE = 20;
+
+
+	private $_fileManager;
+	private $_uploadedFiles;
+
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param Framework $Framework
+	 */
+	public static function brainstageRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'buildHead' );
+		$Framework->registerHook( $Plugin, 'buildBody' );
+		$Framework->registerHook( $Plugin, 'getNavigatorItem' );
+	}
+
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin in die Menüreihenfolge einsortieren kann
+	 * @return int Desto höher der Wert, desto weiter oben erscheint das Plugin
+	 */
+	public static function brainstageSortValue() {
+		return 90;
+	}
+
+
+	/** Wird von der API aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function apiRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'upload', 'api_handleUpload' );
+		$Framework->registerHook( $Plugin, 'list', 'api_listFiles' );
+		$Framework->registerHook( $Plugin, 'delete', 'api_deleteFile' );
+	}
+
+
+	/** Wird von Brainstage aufgerufen, um abzufragen, welche Rechtebezeichner vom Plugin verwendet werden
+	 *
+	 * @return array
+	 */
+	public static function registerPrivileges() {
+		return 'add,edit,editAll,delete,deleteAll';
+	}
+
+
+	/** Dient als Konstruktor-Erweiterung
+	 */
+	protected function init() {
+		$this->_fileManager = new \rsCore\FileManager( null, true );
+		$this->getFileManager()->handleDownload();
+	}
+
+
+/* Private methods */
+
+	protected function getFileManager() {
+		return $this->_fileManager;
+	}
+
+
+	protected function getUploadedFiles() {
+		return $this->_uploadedFiles;
+	}
+
+
+	protected function getListIntervalSize() {
+		return intval( getVar( 'limit', self::DEFAULT_INTERVAL_SIZE ) );
+	}
+
+
+	protected function getPaginationMax() {
+		return ceil( $this->getFileManager()->countUsersFiles() / $this->getListIntervalSize() );
+	}
+
+
+	protected function getPaginationIndex() {
+		return getVar( 'page', 1 );
+	}
+
+
+/* Brainstage Plugin */
+
+	/** Ergänzt den Header
+	 * @param \rsCore\ProtectivePageHead $Head
+	 */
+	public function buildHead( \rsCore\ProtectivePageHead $Head ) {
+		$Head->linkScript( 'static/js/media.js' );
+		$Head->linkStylesheet( 'static/css/media.css' );
+	}
+
+
+	/** Ergänzt den Navigator
+	 * @return string
+	 */
+	public function getNavigatorItem() {
+		return self::t("Media");
+	}
+
+
+	/** Ergänzt den MainContent
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildBody( \rsCore\Container $Container ) {
+		$Container->addAttribute( 'class', 'colset' );
+	#	$MediaBrowser = $Container->subordinate( 'div#content.col-0 > ul.browser editable' );
+
+		$Dropzone = $Container->subordinate( 'div.upload-form > form.dropzone', array('action' => 'api.php/brainstage/plugins/media/upload', 'method' => 'post', 'enctype' => 'multipart/form-data') );
+		$Dropzone->subordinate( 'div.dz-message' )
+			->subordinate( 'button(button).btn btn-primary', self::t("Choose file...") );
+		$Dropzone->subordinate( 'div.fallback' )
+			->subordinate( 'input(file):file', array('multiple' => 'multiple') )->parent()
+			->subordinate( 'input(submit)='. self::t("Upload") );
+
+		$this->buildMediaList( $Container );
+		$this->buildPagination( $Container );
+	}
+
+
+	/** Baut die Pagination
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildPagination( \rsCore\Container $Container ) {
+		$Pagination = $Container->subordinate( 'div.pagination > ul.pagination' );
+		$numPages = $this->getPaginationMax();
+		for( $index = 1; $index <= $numPages; $index++ ) {
+			$Pagination->subordinate( 'li'. ($this->getPaginationIndex() == $index ? '.active' : '') .' > a', $index );
+		}
+	}
+
+
+	/** Baut die Datei-Liste
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildMediaList( \rsCore\Container $Container ) {
+		$Table = $Container->subordinate( 'table#mediaTable.table table-hover table-striped'. (self::may('edit') ? ' editable' : '') );
+		$ModalSpace = $Container->subordinate( 'div.modal-space' );
+		$Row = $Table->subordinate( 'thead > tr' );
+		$Row->subordinate( 'th', self::t("Title") );
+		$Row->subordinate( 'th' );
+		$Row->subordinate( 'th', self::t("Date") );
+		$Row->subordinate( 'th', self::t("Owner") );
+		$Row->subordinate( 'th' );
+		$TableBody = $Table->subordinate( 'tbody' );
+	}
+
+
+/* API Plugin */
+
+	/** Behandelt einen Datei-Upload
+	 * @return array
+	 * @todo Machen!
+	 */
+	public function api_handleUpload( $params ) {
+		self::throwExceptionIfNotAuthorized();
+		if( !$this->_uploadedFiles )
+			$this->_uploadedFiles = $this->getFileManager()->handleUploads();
+		if( !empty( $this->_uploadedFiles ) ) {
+			$files = array();
+			foreach( $this->_uploadedFiles as $File )
+				$files[] = $File->getColumns();
+			return $files;
+		}
+		return false;
+	}
+
+
+	/** Listet alle Dateien auf
+	 * @return array
+	 */
+	public function api_listFiles( $params ) {
+		self::throwExceptionIfNotAuthorized();
+		$limit = $this->getListIntervalSize();
+		$start = intval( getVar( 'start', 0 ) ) * $limit;
+		$files = array();
+		foreach( $this->getFileManager()->getAllFiles( $limit, $start ) as $File ) {
+			$User = $File->getUser();
+			$columns = array_merge( $File->getColumns(), array('owner' => array(
+				'id' => $User->getPrimaryKeyValue(),
+				'name' => $User->name
+			)) );
+			if( $File->uploadDate )
+				$columns['uploadDate'] = $File->uploadDate->format( self::t('Y-m-d H:i:s', 'Date and Time: full year, hours, minutes and seconds') );
+			$files[] = $columns;
+		}
+		return $files;
+	}
+
+	/** Löscht eine Datei
+	 * @return boolean
+	 * @todo Prüfen, ob Löschen erlaubt
+	 */
+	public function api_deleteFile( $params ) {
+		self::throwExceptionIfNotAuthorized();
+		$fileId = intval( getVar( 'id' ) );
+		if( $fileId ) {
+			$File = $this->getFileManager()->getFileById( $fileId );
+			// Prüfung ausbauen
+			if( $File->userId == \rsCore\Auth::getUser()->getPrimaryKeyValue() )
+				return $File->remove();
+		}
+		return false;
+	}
+
+
+}

@@ -1,0 +1,188 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Templates;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface InternationalHomepageInterface {
+
+	function buildHead( \rsCore\ProtectivePageHeadInterface $Head );
+	function buildBody( \rsCore\Container $Body );
+	function buildTop( \rsCore\Container $Top );
+	function buildContent( \rsCore\Container $Content );
+
+}
+
+
+/** InternationalHomepageTemplate class.
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends \rsCore\HTMLTemplate
+ */
+class InternationalHomepage extends Base implements InternationalHomepageInterface {
+
+
+	/** Dient als Konstruktor
+	 *
+	 * @access public
+	 * @return void
+	 */
+	public function init() {
+		parent::init();
+
+		$this->hook( 'extendHead' );
+	}
+
+
+	/** Hook zum Manipulieren des HTML-Headers
+	 *
+	 * @access public
+	 * @param \rsCore\PageHead $Head
+	 * @return void
+	 */
+	public function extendHead( \rsCore\ProtectivePageHeadInterface $Head ) {
+		$Head->linkStylesheet( '/static/css/international.css' );
+		$Head->linkScript( '/static/js/international.js' );
+	}
+
+
+	/** Hook zum Manipulieren des HTML-Bodys
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Body
+	 * @return void
+	 */
+	public function buildBody( \rsCore\Container $Body ) {
+		$Worldmap = $Body->subordinate( 'div#background' );
+		$Main = $Body->subordinate( 'div#body > div#main' );
+		$Top = $Main->subordinate( 'div#top > div.inner' );
+		$Content = $Main->subordinate( 'div#content' );
+
+		$this->buildTop( $Top );
+		$this->buildContent( $Content );
+		$this->buildFooter( $Content );
+	}
+
+
+	/** Baut die fixierte Topbar zusammen
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Top
+	 * @return void
+	 */
+	public function buildTop( \rsCore\Container $Top ) {
+		$logoUrl = '//'. requestPath()->domain->domainbase;
+		$Logo = $Top->subordinate( 'a', array('href' => $logoUrl, 'title' => "Homepage") )->subordinate( 'span#logo' );
+	#	$this->buildLanguageSwitch( $Top );
+	}
+
+
+	/** Baut den Content zusammen
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Body
+	 * @return void
+	 */
+	public function buildContent( \rsCore\Container $Content ) {
+		$this->buildCountrySelector( $Content );
+		$this->buildEventCounter( $Content );
+		$this->buildLocationCounter( $Content );
+		$this->buildGodCounter( $Content );
+	}
+
+
+	/** Baut das Ländermenü zusammen
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function buildCountrySelector( \rsCore\Container $Container ) {
+		$CountrySelector = $Container->subordinate( 'div#selector > select', array('placeholder' => "Choose your country...") );
+		$CountrySelector->subordinate( 'option', array(), "Choose your country..." );
+		$this->fillCountrySelector( $CountrySelector );
+	}
+
+
+	/** Baut den Event-Counter
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function buildEventCounter( \rsCore\Container $Container ) {
+		$Container = $Container->subordinate( 'section' );
+		$Container->subordinate( 'h1', '1.706' );
+		$Container->subordinate( 'h2', "Nightfever since 2005 - worldwide" );
+	}
+
+
+	/** Baut den Location-Counter
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function buildLocationCounter( \rsCore\Container $Container ) {
+		$Container = $Container->subordinate( 'section' );
+		$Container->subordinate( 'h1', \Nightfever\Location::totalCount() );
+		$Container->subordinate( 'h2', "Places around the world" );
+	}
+
+
+	/** Baut den "God-Counter"
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function buildGodCounter( \rsCore\Container $Container ) {
+		$Container = $Container->subordinate( 'section' );
+		$Container->subordinate( 'h1', '1' );
+		$Container->subordinate( 'h2', "God" );
+	}
+
+
+/* Private Methoden */
+
+	/** Listet die Länder auf
+	 *
+	 * @access private
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	private function buildCountryList( \rsCore\Container $Container ) {
+		$List = $Container->subordinate( 'div#countrylist > ul' );
+
+		$countries = array();
+		foreach( \Nightfever\Sites::getCountries() as $Country )
+			$countries[ $Country->name ] = $Country;
+		ksort( $countries );
+
+		foreach( $countries as $Country ) {
+			$shortname = strtoupper( $Country->shortname );
+			$url = '//'. $shortname .'.'. rsCore()->getRequestPath()->domain->domainbase;
+
+			$List->subordinate( 'li' )
+				->subordinate( 'a', array('href' => $url) )
+					->subordinate( 'img', array('src' => '/static/images/flags/'. $shortname .'.png') )
+						->parent()
+					->swallow( $Country->name )
+					->subordinate( 'img.arrow', array('src' => '/static/images/arrow_white_40px.png') );
+		}
+	}
+
+
+}

@@ -1,0 +1,183 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface APIFrameworkInterface {
+
+	public function registerHook( CoreClass $Object, $event, $specificMethod );
+	public function unregisterHook( CoreClass $Object, $event );
+
+	public function catchExceptions( $boolean );
+
+	public function hasHooks( $event );
+	public function getHooks( $event );
+	public function callHooks( $event, $params, $indexByIdentifier );
+
+	public function getHookedObjects();
+
+	public function getFramework( Plugin $Object );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class APIFramework extends Framework implements APIFrameworkInterface {
+
+
+	private $_API;
+
+
+/* Magic methods */
+
+	public function __construct( API $API ) {
+		$this->_API = $API;
+		$this->init();
+	}
+
+	public function __get( $key ) {
+		return $this->getHooks( $key );
+	}
+
+
+	public function __set( $key, $value ) {
+		if( is_object( $value ) ) {
+			$this->registerHook( $value, $key );
+		}
+	}
+
+
+	/** Ruft die Hooks zu einem Event auf
+	 *
+	 * @access public
+	 * @param string $method
+	 * @param array $params
+	 * @return void
+	 */
+	public function __call( $event, $params ) {
+		$this->callHooks( $event, $params );
+	}
+
+
+/* Private methods */
+
+	/** Gibt die API zurück
+	 *
+	 * @access private
+	 * @return API
+	 */
+	private function getAPI() {
+		return $this->_API;
+	}
+
+
+/* Public methods */
+
+	/** Gibt das Framework zurück
+	 *
+	 * @access private
+	 * @param CoreClass $Object
+	 * @return Framework
+	 */
+	public function getFramework( Plugin $Object ) {
+		$objectId = $Object->getObjectId();
+		return $this->getAPI()->getFramework( $Object->getIdentifier() );
+	}
+
+
+	/** Registriert ein Objekt als Hook für ein Event
+	 *
+	 * @access public
+	 * @param CoreClass $Object
+	 * @param string $event
+	 * @return object Selbstreferenz
+	 */
+	public function registerHook( CoreClass $Object, $event, $specificMethod=null ) {
+		return $this->getFramework( $Object )->registerHook( $Object, $event, $specificMethod );
+	}
+
+
+	/** Entfernt den Hook eines Objekts für ein Event
+	 *
+	 * @access public
+	 * @param CoreClass $Object
+	 * @param string $event
+	 * @return object Selbstreferenz
+	 */
+	public function unregisterHook( CoreClass $Object, $event ) {
+		return $this->getFramework( $Object )->unregisterHook( $Object, $event );
+	}
+
+
+	/** Dead end
+	 *
+	 * @access public
+	 * @param boolean $boolean
+	 * @return object Selbstreferenz
+	 */
+	public function catchExceptions( $boolean ) {
+		return $this;
+	}
+
+
+	/** Dead end
+	 *
+	 * @access public
+	 * @param string $event
+	 * @return boolean
+	 */
+	public function hasHooks( $event ) {
+		return false;
+	}
+
+
+	/** Dead end
+	 *
+	 * @access public
+	 * @param string $event
+	 * @return array
+	 */
+	public function getHooks( $event=null ) {
+		return array();
+	}
+
+
+	/** Dead end
+	 *
+	 * @access public
+	 * @param string $event
+	 * @param array $params Zu übergebende Parameter
+	 * @param boolean $indexByIdentifier Bei true wird das zurückgegebene Array durch einen Objekt-Identifier indiziert
+	 * @return array Array von Rückgaben
+	 * @todo Exception fangen, still und leise protokollieren, ggf. weiterwerfen
+	 */
+	public function callHooks( $event, $params=null, $indexByIdentifier=false ) {
+		return array();
+	}
+
+
+	/** Dead end
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public function getHookedObjects() {
+		return array();
+	}
+
+
+}

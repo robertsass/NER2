@@ -1,0 +1,38 @@
+/* Variables */
+/* Translation */
+#translationTable th {
+  width: 50%; }
+  #translationTable th div.selectize-control {
+    display: inline-block;
+    width: 240px; }
+#translationTable.editable tr > td:first-child.commentless {
+  padding-top: 15px;
+  padding-bottom: 15px; }
+#translationTable.editable tr > td:first-child input[type="checkbox"] {
+  display: none;
+  margin: 0;
+  margin-right: 10px; }
+
+#translation td > .comment, #internaltranslation td > .comment {
+  display: block;
+  font-size: 80%;
+  color: #999; }
+#translation input.machine-translated, #internaltranslation input.machine-translated {
+  background: #00ffb3; }
+#translation .toolbar > div, #internaltranslation .toolbar > div {
+  text-align: center; }
+#translation .toolbar > div:first-child, #internaltranslation .toolbar > div:first-child {
+  text-align: left; }
+#translation .toolbar > div:last-child, #internaltranslation .toolbar > div:last-child {
+  text-align: right; }
+#translation .toolbar div.deleteButtons, #internaltranslation .toolbar div.deleteButtons {
+  display: none; }
+#translation ul.pagination, #internaltranslation ul.pagination {
+  margin: 0;
+  padding: 0; }
+#translation.editing #translationTable tr > td:first-child input[type="checkbox"], #internaltranslation.editing #translationTable tr > td:first-child input[type="checkbox"] {
+  display: inline-block; }
+#translation.editing .toolbar div.deleteButtons, #internaltranslation.editing .toolbar div.deleteButtons {
+  display: inline-block; }
+#translation.editing .toolbar .enableDeletion, #internaltranslation.editing .toolbar .enableDeletion {
+  display: none; }

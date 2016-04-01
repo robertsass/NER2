@@ -1,0 +1,242 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class DatabaseDataset extends CoreClass {
+
+
+	private $_DatabaseConnector;
+	private $_table;
+	private $_primaryKey;
+
+	protected $data = null;
+	private $changed = false;
+	private $errors = array();
+	private $removed = false;
+	private $inMagicMethod = false;
+
+
+	public function getDatabaseConnector() {
+		return $this->_DatabaseConnector;
+	}
+
+
+	public function getTable() {
+		return $this->_table;
+	}
+
+
+	public function getPrimaryKey() {
+		return $this->_primaryKey;
+	}
+
+
+	public function __construct( DatabaseConnector $DatabaseConnector, $data ) {
+		$this->_DatabaseConnector = $DatabaseConnector;
+		$this->_table = $DatabaseConnector->getTable();
+		$this->_primaryKey = $DatabaseConnector->getPrimaryKey();
+
+		if( !is_array( $data ) ) {
+			if( intval($data) > 0 )
+				$data = $this->getData( intval($data) );
+			else
+				throw new Exception( 'Second parameter of '. __CLASS__ .' must be array or integer.' );
+		}
+
+		$this->initData( $data );
+		$this->init();
+	}
+
+
+	public function __destruct() {
+		if( $this->changed )
+			$this->adopt();
+	}
+
+
+	public function __toString() {
+		return json_encode( $this->getColumns() );
+	}
+
+
+	public function getWhereCondition() {
+		return '`'. $this->getPrimaryKey() .'`="'. $this->get( $this->getPrimaryKey() ) .'"';
+	}
+
+
+	protected function getData( $key ) {
+		if( $this->data !== null )
+			return false;
+		$data = $this->getDatabaseConnector()->getRow( '`'. $this->getPrimaryKey() .'`="'. $key .'"' );
+		return $data;
+	}
+
+
+	protected function initData( array $data=null ) {
+		if( $this->data !== null )
+			return false;
+		$this->data = $data;
+		return true;
+	}
+
+
+	protected function init() {
+	}
+
+
+	public function getColumns() {
+		return $this->data;
+	}
+
+
+	public function __get( $key ) {
+		$this->inMagicMethod = true;
+		$value = $this->get( $key );
+		$this->inMagicMethod = false;
+		return $value;
+	}
+
+
+	public function get( $key ) {
+		if( !$this->removed && is_array( $this->data ) && array_key_exists( $key, $this->data ) )
+			return $this->decode( $key, $this->data[ $key ] );
+		return null;
+	}
+
+
+	public function __set( $key, $value ) {
+		$this->inMagicMethod = true;
+		$return = $this->set( $key, $value );
+		$this->inMagicMethod = false;
+		return $return;
+	}
+
+
+	public function set( $key, $value ) {
+		if( array_key_exists( $key, $this->data ) ) {
+			if( $key !== $this->getPrimaryKey() ) {
+				if( $this->validate( $key, $value ) ) {
+					$this->data[ $key ] = $this->encode( $key, $value );
+					$this->changed = true;
+					return true;
+				} elseif( $this->inMagicMethod )
+					throw new Exception( 'The field "'. $key .'" is not valid.' );
+			} elseif( $this->inMagicMethod )
+				throw new Exception( 'You can\'t change the primary key, it would break dataset connections.' );
+		} elseif( $this->inMagicMethod )
+			throw new Exception( 'The field "'. $key .'" does not exist.' );
+		return false;
+	}
+
+
+	protected function encode( $key, $value ) {
+		$method_name = 'encode'. ucfirst( $key );
+		if( method_exists( $this, $method_name ) )
+			return call_user_func_array( array( $this, $method_name ), array( $value ) );
+		return $value;
+	}
+
+
+	protected function decode( $key, $value ) {
+		$method_name = 'decode'. ucfirst( $key );
+		if( method_exists( $this, $method_name ) )
+			return call_user_func_array( array( $this, $method_name ), array( $value ) );
+		return $value;
+	}
+
+
+	protected function validate( $key, $value ) {
+		$method_name = 'validate'. ucfirst( $key );
+		if( method_exists( $this, $method_name ) )
+			return call_user_func_array( array( $this, $method_name ), array( $value ) );
+		return true;
+	}
+
+
+	protected function onChange() {}
+
+
+	protected function adoptChanges() {
+		if( $this->changed ) {
+			$success = $this->getDatabaseConnector()->update( $this->data, $this->getWhereCondition() );
+			$this->changed = !$success;
+			return $success;
+		}
+		return true;
+	}
+
+
+	public function adopt() {
+		if( $this->removed ) {
+			throw new Exception( 'Dataset can\'t be changed, because it has been removed during lifetime.' );
+			return false;
+		}
+		if( $this->changed )
+			$this->onChange();
+		return $this->adoptChanges();
+	}
+
+
+	public function remove() {
+		if( $this->getDatabaseConnector()->delete( $this->getWhereCondition() ) ) {
+			$this->removed = true;
+			return true;
+		}
+		return false;
+	}
+
+
+	public function wasRemoved() {
+		return $this->removed;
+	}
+
+
+	public function getErrors() {
+		return $this->errors;
+	}
+
+
+	public function failed( $clearErrors=false ) {
+		$failed = !empty( $this->errors );
+		if( $clearErrors )
+			$this->clearErrors();
+		return $failed;
+	}
+
+
+	public function clearErrors() {
+		$this->errors = array();
+	}
+
+
+	public function toArray() {
+		return $this->data;
+	}
+
+
+	public function getPrimaryKeyValue() {
+		return $this->get( $this->getPrimaryKey() );
+	}
+
+
+	public function duplicate() {
+		$columns = $this->getColumns();
+		unset( $columns[ $this->getPrimaryKey() ] );
+		if( $this->getDatabaseConnector()->insert( $columns ) )
+			return $this->getDatabaseConnector()->getRowByPrimaryKey( $this->getDatabaseConnector()->getLastInsertedId() );
+		return null;
+	}
+
+
+}

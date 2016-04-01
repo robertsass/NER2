@@ -1,0 +1,359 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2016 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Plugins;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2016 Robert Sass
+ * @internal
+ */
+interface MoviesInterface {
+}
+
+
+/** MoviesPlugin
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2016 Robert Sass
+ *
+ * @extends \rsCore\Plugin
+ */
+class Movies extends \rsCore\Plugin implements MoviesInterface, \Brainstage\Plugins\Dashboard\PluginInterface {
+
+/* Framework Registration */
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function brainstageRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'buildHead' );
+		$Framework->registerHook( $Plugin, 'buildBody' );
+		$Framework->registerHook( $Plugin, 'getNavigatorItem' );
+	}
+
+
+	/** Wird von der API aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function apiRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'add', 'api_addMovie' );
+		$Framework->registerHook( $Plugin, 'list', 'api_listMovies' );
+		$Framework->registerHook( $Plugin, 'save', 'api_saveMovie' );
+		$Framework->registerHook( $Plugin, 'delete', 'api_deleteMovie' );
+		$Framework->registerHook( $Plugin, 'badge_count', 'api_badgeCount' );
+	}
+
+
+	/** Wird vom Brainstage-Plugin Dashboard aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function dashboardRegistration( \rsCore\FrameworkInterface $Framework ) {
+	#	$Plugin = self::instance();
+	#	$Framework->registerHook( $Plugin, 'buildWidget' );
+	}
+
+
+/* General */
+
+	/** Wird von Brainstage aufgerufen, um abzufragen, welche Rechtebezeichner vom Plugin verwendet werden
+	 *
+	 * @return array
+	 */
+	public static function registerPrivileges() {
+		return 'add,edit,delete';
+	}
+
+
+	/** Dient als Konstruktor-Erweiterung
+	 */
+	protected function init() {
+		parent::init();
+	}
+
+
+	/** Baut die Rückgabe der List-API-Abfrage zusammen
+	 */
+	protected static function buildMoviesList( array $Movies ) {
+		$list = array();
+		foreach( $Movies as $Movie ) {
+			$array = $Movie->getColumns();
+
+			$array['review_count'] = \Site\CrawlerReviewSearch::count('`movieId`="'. $Movie->getPrimaryKeyValue() .'"');
+
+			$list[] = $array;
+		}
+		return $list;
+	}
+
+
+/* Dashboard Widget */
+
+	/** Gibt den Titel des Dashboard-Widgets zurück
+	 * @return string
+	 */
+	public static function getDashboardWidgetTitle() {
+		return self::t("Movies");
+	}
+
+
+	/** Baut das Widget
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildWidget( \rsCore\Container $Container ) {
+		$Row = $Container->subordinate( 'div.row' );
+
+		$Counter = $Row->subordinate( 'div.col-md-12 > div.huge-counter.centered' )
+			->subordinate( 'span.number', \Site\CrawlerMovie::totalCount() )
+			->append( 'span.description', self::t("Movie titles") );
+	}
+
+
+/* Brainstage Plugin */
+
+	/** Ergänzt den Navigator
+	 * @return string
+	 */
+	public function getNavigatorItem() {
+		return self::t("Movies");
+	}
+
+
+	/** Ergänzt den Header
+	 * @param \rsCore\ProtectivePageHead $Head
+	 */
+	public function buildHead( \rsCore\ProtectivePageHead $Head ) {
+		$Head->linkStylesheet( '/static/css/movies.css' );
+		$Head->linkScript( '/static/js/movies.js' );
+	}
+
+
+	/** Ergänzt den MainContent
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildBody( \rsCore\Container $Container ) {
+		$Container->addAttribute( 'class', 'splitView' );
+		$this->buildToolbar( $Container );
+		$this->buildSplitView( $Container->subordinate( 'div.headered' ) );
+	}
+
+
+	/** Baut die Toolbar
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildToolbar( \rsCore\Container $Container ) {
+		$Toolbar = $Container->subordinate( 'header > div.row' );
+	#	$this->buildTabBar( $Toolbar->subordinate( 'div.col-md-5' ) );
+		if( self::may('add') )
+			$Toolbar->subordinate( 'div.col-md-12 > input(button).btn btn-primary', array('data-toggle' => 'modal', 'data-target' => '#bookingCreationModal', 'aria-hidden' => 'true', 'value' => t("Add")) );
+	}
+
+
+	/** Baut die Tabbar zusammen
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildTabBar( \rsCore\Container $Container ) {
+		$tabAttr = array('role' => 'tab', 'data-toggle' => 'tab');
+		$Bar = $Container->subordinate( 'ul.nav.nav-tabs' );
+
+		$tabs = array();
+		foreach( $tabs as $param => $title ) {
+			$attr = array_merge( $tabAttr, array('data-api-parameters' => $param) );
+			$Bar->subordinate( 'li > a', $attr, $title );
+		}
+	}
+
+
+	/** Baut die SplitView
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildSplitView( \rsCore\Container $Container ) {
+		$ModalSpace = $Container->subordinate( 'div.modal-space' );
+		$Container = $Container->subordinate( 'div.row' );
+		$ListColumn = $Container->subordinate( 'div.col-md-5.list' );
+		$DetailColumn = $Container->subordinate( 'div.col-md-7.details' );
+
+		$this->buildListView( $ListColumn );
+		$this->buildDetailsView( $DetailColumn );
+
+		if( self::may('add') )
+			$this->buildCreationModal( $ModalSpace );
+	}
+
+
+	/** Baut die Listenansicht der SplitView
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildListView( \rsCore\Container $Container ) {
+		$Table = $Container->subordinate( 'table.table#bookingTable table-hover table-striped' );
+		$Row = $Table->subordinate( 'thead > tr' );
+		$Row->subordinate( 'th', t("Movie title") );
+		$Row->subordinate( 'th', t("Reviews") );
+		$TableBody = $Table->subordinate( 'tbody' );
+	}
+
+
+	/** Baut die Detailansicht der SplitView
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildDetailsView( \rsCore\Container $Container ) {
+		$DetailsView = $Container->subordinate( 'form', array('action' => 'save') );
+		$DetailsView->subordinate( 'input(hidden):id' );
+
+		$Title = $DetailsView->subordinate( 'div.title' );
+		$Title->subordinate( 'h1', self::t("Details") );
+/*
+		if( self::may('edit') )
+			$Title->subordinate( 'button(button).btn.btn-primary.saveDetails', self::t("Save") );
+*/
+
+		$Table = $DetailsView->subordinate( 'table.table.table-striped.has-textfields' );
+		$TableBody = $Table->subordinate( 'tbody' );
+
+/*
+		$Row = $TableBody->subordinate( 'tr' );
+		$Row->subordinate( 'th', t("Movie title") );
+		$Row->subordinate( 'td > input.form-control(text):title', array('placeholder' => t("Movie title")) );
+*/
+
+		$Row = $TableBody->subordinate( 'tr' );
+		$Row->subordinate( 'th', t("Source") );
+		$Row->subordinate( 'td > a.url', array('target' => '_blank') );
+
+/*
+		$Row = $DetailsView->subordinate( 'div.row' );
+		if( self::may('delete') )
+			$Row->subordinate( 'div.col-md-6 > button(button).btn.btn-default.remove', t("Delete") );
+		if( self::may('edit') )
+			$Row->subordinate( 'div.col-md-6 > button(button).btn.btn-primary.save', t("Save") );
+*/
+	}
+
+
+	/** Baut die Eingabemaske
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildCreationModal( \rsCore\Container $Container ) {
+		$Form = $Container->subordinate( 'form', array('action' => 'add') );
+		$Modal = $Form->subordinate( 'div#bookingCreationModal.modal fade', array('aria-hidden' => 'true') )
+						->subordinate( 'div.modal-dialog > div.modal-content' );
+		$ModalHead = $Modal->subordinate( 'div.modal-header' );
+		$ModalBody = $Modal->subordinate( 'div.modal-body' );
+		$ModalFoot = $Modal->subordinate( 'div.modal-footer' );
+
+		$ModalHead->subordinate( 'button(button).close', array('data-dismiss' => 'modal') )
+				->subordinate( 'span', array('aria-hidden' => 'true'), '&times;' );
+		$ModalHead->subordinate( 'h1.modal-title', t("Add movie") );
+
+		$ModalFoot->subordinate( 'button.btn.btn-primary.save', t("Save") );
+
+		$Form = $ModalBody;
+
+		$Form->subordinate( 'div.row > div.col-md-12 > textarea:notes.form-control', array('placeholder' => t("Notes"), 'rows' => 8) );
+	}
+
+
+/* API Plugin */
+
+	/** Fügt ein neues Booking ein
+	 * @return boolean
+	 */
+	public function api_addMovie( $params ) {
+		self::throwExceptionIfNotPrivileged( 'add' );
+/*
+		$Client = \Site\Client::getClientById( postVar('clientId') );
+		$Begin = \rsCore\Calendar::parse( 'Y-m-d', postVar('begin') );
+		$End = \rsCore\Calendar::parse( 'Y-m-d', postVar('end') );
+		$Booking = \Site\Booking::addBooking( $Client, $Begin, $End );
+		if( $Booking ) {
+			$Booking->status = 'booked';
+			$Booking->notes = postVar('notes');
+			$Booking->adopt();
+			return $Booking->getColumns();
+		}
+*/
+		return false;
+	}
+
+
+	/** Listet die Movies auf
+	 * @return array
+	 */
+	public function api_listMovies( $params ) {
+		$Movies = \Site\CrawlerMovie::getAll();
+		return self::buildMoviesList( $Movies );
+	}
+
+
+	/** Speichert Veranstaltungsdetails
+	 * @return array
+	 */
+	public function api_saveMovie( $params ) {
+		self::throwExceptionIfNotPrivileged( 'edit' );
+/*
+		$Booking = \Site\Booking::getBookingById( postVar('id') );
+		if( !$Booking )
+			return false;
+
+		$Client = \Site\Client::getClientById( postVar('clientId') );
+		if( !$Client )
+			return false;
+*/
+/*
+		$fields = array('status');
+		foreach( $fields as $field ) {
+			if( isset( $_POST[ $field ] ) ) {
+				$value = postVar( $field );
+				$Booking->set( $field, $value );
+			}
+		}
+*/
+/*
+
+		$Booking->clientId = $Client->getPrimaryKeyValue();
+		$Booking->status = postVar('status') == 'on' ? 'booked' : 'request';
+		$Booking->begin = \rsCore\Calendar::parse( 'Y-m-d', postVar('begin') );
+		$Booking->end = \rsCore\Calendar::parse( 'Y-m-d', postVar('end') );
+		$Booking->notes = postVar('notes');
+
+		if( $Booking->adopt() )
+			return $Booking->getColumns();
+*/
+		return false;
+	}
+
+
+	/** Löscht ein Booking
+	 * @return boolean
+	 * @todo Prüfen ob das Booking auch im Zuständigkeitsbereich liegt und gelöscht werden darf
+	 */
+	public function api_deleteMovie( $params ) {
+		self::throwExceptionIfNotPrivileged( 'delete' );
+/*
+		$Booking = \Site\Booking::getBookingById( postVar('id') );
+		if( $Booking )
+			return $Booking->remove();
+*/
+	}
+
+
+	/** Gibt die Badge-Zahl zurück
+	 * @return integer
+	 */
+	public function api_badgeCount( $params ) {
+		return \Site\CrawlerMovie::totalCount();
+	}
+
+
+}

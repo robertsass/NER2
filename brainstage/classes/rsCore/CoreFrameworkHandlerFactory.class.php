@@ -1,0 +1,76 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface CoreFrameworkHandlerFactoryInterface {
+
+	public function getHandlerInstance();
+	public function callStaticMethod( $methodName, $parameters );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class CoreFrameworkHandlerFactory implements CoreFrameworkHandlerFactoryInterface {
+
+	/* Variables */
+	private $_competence;
+	private $_framework;
+	private $_className;
+
+
+	/* Magic methods */
+
+	public function __construct( $competence, CoreFramework $Framework ) {
+		$this->_competence = $competence;
+		$this->_framework = $Framework;
+		$this->_className = $Framework->getHandlerClassname( $competence );
+	}
+
+	public function __call( $methodName, $parameters ) {
+		return $this->callStaticMethod( $methodName, $parameters );
+	}
+
+
+	/* Public methods */
+
+	/** Instanziiert die Klasse für diese Kompetenz
+	 * @param mixed  Beliebige Parameter(zahl), die dem Konstruktor übergeben werden
+	 * @return object Instanz der Klasse
+	 */
+	public function getHandlerInstance() {
+		if( !$this->_className )
+			return null;
+		$ReflectionClass = new \ReflectionClass( $this->_className );
+		return $ReflectionClass->newInstanceArgs( func_get_args() );
+	}
+
+
+	/** Ruft eine statische Methode der Klasse auf
+	 * @param string $methodName Name der Methode, die aufgerufen werden soll
+	 * @param array $parameters Array mit Parametern für den Methodenaufruf
+	 * @return mixed Rückgabe des Methodenaufrufs
+	 */
+	public function callStaticMethod( $methodName, $parameters ) {
+		if( !$this->_className || !is_callable(  $this->_className .'::'. $methodName ) )
+			return null;
+		return forward_static_call( array($this->_className, $methodName), $parameters );
+	}
+
+
+}

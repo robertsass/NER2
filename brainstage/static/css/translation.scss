@@ -1,0 +1,115 @@
+/* Variables */
+
+$defaultPadding: 20px;
+$defaultFontWeight: 400;
+$defaultHeadlineFontSize: 24px;
+$defaultHeadlineLineHeight: 40px;
+$boldFontWeight: 500;
+
+$mainBackground: #FFF;
+$darkBackground: #121212;
+$lightBackground: #222;
+
+$highlightColor: #00a7ff;
+$highlightGradientColorFrom: $highlightColor;
+$highlightGradientColorTo: #0074ff;
+
+$selectionTextColor: $mainBackground;
+
+$navigatorTextColor: $mainBackground;
+$navigatorBackground: $darkBackground;
+$navigatorLightBackground: $lightBackground;
+$navigatorHeaderPadding: 4px;
+$navigatorHeaderColor: #555;
+
+$sidebarBackground: #EEE;
+$sidebarHeaderColor: #999;
+
+$documentBrowserHoverBackground: #EEE;
+$documentBrowserBorderColor: #DDD;
+$documentEditorPadding: 10px;
+
+$toolbarHeight: 58px;
+$toolbarBackground: #EEE;
+$toolbarBorderColor: #DDD;
+
+
+/* Translation */
+
+#translationTable {
+	th {
+		width: 50%;
+
+		div.selectize-control {
+			display: inline-block;
+			width: 240px;
+		}
+	}
+
+	&.editable {
+		tr > td:first-child {
+
+			&.commentless {
+				padding-top: 15px;
+				padding-bottom: 15px;
+			}
+
+			input[type="checkbox"] {
+				display: none;
+				margin: 0;
+				margin-right: 10px;
+			}
+		}
+	}
+}
+
+#translation, #internaltranslation {
+	td > .comment {
+		display: block;
+		font-size: 80%;
+		color: $sidebarHeaderColor;
+	}
+
+	input.machine-translated {
+		background: #00ffb3;
+	}
+
+	.toolbar {
+		& > div {
+			text-align: center;
+		}
+
+		& > div:first-child {
+			text-align: left;
+		}
+
+		& > div:last-child {
+			text-align: right;
+		}
+
+		div.deleteButtons {
+			display: none;
+		}
+	}
+
+	ul.pagination {
+		margin: 0;
+		padding: 0;
+	}
+
+	&.editing {
+		#translationTable tr > td:first-child input[type="checkbox"] {
+			display: inline-block;
+		}
+
+		.toolbar {
+			div.deleteButtons {
+				display: inline-block;
+			}
+
+			.enableDeletion {
+				display: none;
+			}
+		}
+	}
+}

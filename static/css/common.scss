@@ -1,0 +1,1371 @@
+/* Variables */
+
+$breakpointPhone: 768px;
+$breakpointTablet: 1024px;
+$breakpointDesktop: 1500px;
+$breakpointLarge: 1800px;
+
+$pageWidthSmall: 640px;
+$pageWidthNormal: 960px;
+$pageWidthDesktop: 1280px;
+$pageWidthLarge: 1400px;
+
+$defaultPadding: 16px;
+$defaultVerticalMargin: $defaultPadding *4;
+$defaultBackground: #fff;
+$defaultBorderRadius: 4px;
+$defaultBorderColor: #e2e2e2;
+$defaultBlurRadius: 5px;
+
+$fontFamily: "Open Sans", Helvetica, sans-serif;
+
+$fontSizeSmall: 13px;
+$fontSizeNormal: 15px;
+$fontSizeBig: 18px;
+
+$fontWeightLight: 300;
+$fontWeightNormal: 400;
+$fontWeightBold: 600;
+
+$highlightColor: #8fa620;
+$unexpectedColor: #9a1e44;
+$unexpectedColor: #431F75;
+
+$topHeight: 70px;
+$topBackground: rgba(0,0,0, 0.3);
+$topBackgroundOpaque: rgba(0,0,0, 0.85);
+
+$logoFontFamily: "StudioScrITC", "Satisfy";
+$logoFontSize: 3em;
+$logoLineHeight: 36px;
+
+$menuColor: $defaultBackground;
+$menuFontSize: $fontSizeBig;
+$menuUnfoldBackground: $topBackground;
+
+$contentBackground: $defaultBackground;
+
+$footerHeight: 150px;
+$footerBackground: #f2f2f2;
+$sidebarBackground: $footerBackground;
+
+
+/* Fonts */
+
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,600&subset=latin,latin-ext);
+@import url(https://fonts.googleapis.com/css?family=Dancing+Script|Satisfy|Cookie|Great+Vibes|Marck+Script|Montez|Mr+De+Haviland|Bilbo+Swash+Caps);
+@import url('../fonts/brainicons.css');
+
+/* Mixins */
+
+@mixin transition($transition-property, $transition-time, $method) {
+	-webkit-transition: $transition-property $transition-time $method;
+	-moz-transition: $transition-property $transition-time $method;
+	-ms-transition: $transition-property $transition-time $method;
+	-o-transition: $transition-property $transition-time $method;
+	transition: $transition-property $transition-time $method;
+}
+
+@mixin basic-transition($transition-property) {
+	@include transition($transition-property, 0.3s, linear);
+}
+
+@mixin transform($parameters) {
+	-webkit-transform: $parameters;
+	-moz-transform: $parameters;
+	-ms-transform: $parameters;
+	-o-transform: $parameters;
+	transform: $parameters;
+}
+
+@mixin scale-proportionaly($radius) {
+	@include transform( scale($radius, $radius) );
+}
+
+@mixin blur($radius) {
+  -webkit-filter: blur($radius+px);
+  -ms-filter: blur($radius+px);
+  filter: url("data:image/svg+xml;utf8,<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur\"><feGaussianBlur stdDeviation=\"#{$radius}\" /></filter></svg>#blur");
+//  filter: progid:DXImageTransform.Microsoft.Blur(Strength='#{$radius}px');
+  filter: blur($radius+px);
+}
+
+@mixin opacity($percentage) {
+	-webkit-opacity: $percentage;
+	-moz-opacity: $percentage;
+	-ms-opacity: $percentage;
+	-o-opacity: $percentage;
+	opacity: $percentage;
+}
+
+@mixin box-shadow($x, $y, $blur, $color) {
+	-webkit-box-shadow: $x $y $blur $color;
+	-moz-box-shadow: $x $y $blur $color;
+	-ms-box-shadow: $x $y $blur $color;
+	-o-box-shadow: $x $y $blur $color;
+	box-shadow: $x $y $blur $color;
+}
+
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  -o-border-radius: $radius;
+  border-radius: $radius;
+}
+
+@mixin border-radius-top($radius) {
+  @include border-radius-top-left($radius);
+  @include border-radius-top-right($radius);
+}
+
+@mixin border-radius-bottom($radius) {
+  @include border-radius-bottom-left($radius);
+  @include border-radius-bottom-right($radius);
+}
+
+@mixin border-radius-left($radius) {
+  @include border-radius-top-left($radius);
+  @include border-radius-bottom-left($radius);
+}
+
+@mixin border-radius-right($radius) {
+  @include border-radius-top-right($radius);
+  @include border-radius-bottom-right($radius);
+}
+
+@mixin border-radius-top-left($radius) {
+  -moz-border-radius-topleft: $radius;
+  -webkit-border-top-left-radius: $radius;
+  -ms-border-top-left-radius: $radius;
+  -o-border-top-left-radius: $radius;
+  border-top-left-radius: $radius;
+}
+
+@mixin border-radius-top-right($radius) {
+  -moz-border-radius-topright: $radius;
+  -webkit-border-top-right-radius: $radius;
+  -ms-border-top-right-radius: $radius;
+  -o-border-top-right-radius: $radius;
+  border-top-right-radius: $radius;
+}
+
+@mixin border-radius-bottom-left($radius) {
+  -moz-border-radius-bottomleft: $radius;
+  -webkit-border-bottom-left-radius: $radius;
+  -ms-border-bottom-left-radius: $radius;
+  -o-border-bottom-left-radius: $radius;
+  border-bottom-left-radius: $radius;
+}
+
+@mixin border-radius-bottom-right($radius) {
+  -moz-border-radius-bottomright: $radius;
+  -webkit-border-bottom-right-radius: $radius;
+  -ms-border-bottom-right-radius: $radius;
+  -o-border-bottom-right-radius: $radius;
+  border-bottom-right-radius: $radius;
+}
+
+@mixin horizontal-linear-background($start-color, $end-color) {
+	background: -webkit-linear-gradient(left, $start-color, $end-color);
+	background: -o-linear-gradient(right, $start-color, $end-color);
+	background: -moz-linear-gradient(right, $start-color, $end-color);
+	background: linear-gradient(to right, $start-color, $end-color);
+}
+
+@mixin vertical-linear-background($start-color, $end-color) {
+	background: -webkit-linear-gradient($start-color, $end-color);
+	background: -o-linear-gradient($start-color, $end-color);
+	background: -moz-linear-gradient($start-color, $end-color);
+	background: linear-gradient($start-color, $end-color);
+}
+
+@mixin radial-background($outer-color, $inner-color) {
+	background-color: $inner-color;
+	background-image: -moz-radial-gradient($inner-color, $outer-color);
+	background-image: -webkit-gradient(radial, center center, 0, center center, 220, from($inner-color), to($outer-color));
+	background-image: -webkit-radial-gradient($inner-color, $outer-color);
+	background-image: radial-gradient($inner-color, $outer-color);
+}
+
+@mixin diagonal-background($left-upper-color, $right-lower-color) {
+	background-color: $left-upper-color;
+	background-image: -moz-linear-gradient(-45deg, $left-upper-color 50%, $right-lower-color 50%);
+	background-image: -webkit-linear-gradient(-45deg, $left-upper-color 50%, $right-lower-color 50%);
+	background-image: linear-gradient(135deg, $left-upper-color 50%, $right-lower-color 50%);
+}
+
+@mixin stick-to-edges() {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	height: auto;
+	width: auto;
+}
+
+@mixin word-wrap() {
+	word-break: break-word;
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	hyphens: auto;
+}
+
+@mixin box-appearence() {
+	@include border-radius($defaultBorderRadius);
+	@include box-shadow(0px, 1px, 2px, rgba(100, 100, 100, 0.3));
+	background: #fff;
+}
+
+@mixin background-image($filename, $suffix:'png', $retina:true) {
+	background: transparent url('../images/#{$filename}.#{$suffix}') no-repeat center top;
+	@if $retina {
+		@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+			background-image: url('../images/#{$filename}@2x.#{$suffix}');
+		}
+	}
+}
+
+@mixin media-query($min, $max) {
+	@media (min-width: #{$min}) and (max-width: #{$max - 1px}) {
+		@content;
+	}
+}
+
+@mixin media-query-landscape($min, $max) {
+	@media (min-width: #{$min}) and (max-width: #{$max - 1px}) and (orientation: landscape) {
+		@content;
+	}
+}
+
+@mixin media-query-portrait($min, $max) {
+	@media (min-width: #{$min}) and (max-width: #{$max - 1px}) and (orientation: portrait) {
+		@content;
+	}
+}
+
+@mixin inner-contentbox() {
+	position: relative;
+	display: block;
+	max-width: $pageWidthNormal;
+	@include padding();
+	margin: 0 auto;
+	
+	@include media-query-landscape( 0px, $breakpointTablet ) {
+		max-width: $pageWidthSmall;
+	}
+	
+	@include media-query-landscape( $breakpointTablet, $breakpointDesktop ) {
+		max-width: $pageWidthDesktop;
+	}
+	
+	@include media-query-landscape( $breakpointDesktop, $breakpointLarge*2 ) {
+		max-width: $pageWidthLarge;
+	}
+}
+
+@mixin padding() {
+	padding: $defaultPadding;
+	
+	@include media-query-landscape( $breakpointDesktop, $breakpointLarge*2 ) {
+		padding: $defaultPadding *4;
+	}
+}
+
+@mixin default-text-shadow() {
+	text-shadow: 0px 1px 5px rgba(50,50,50, 0.3);
+}
+
+@mixin default-box-shadow() {
+	@include box-shadow( 0px, 1px, 5px, rgba(50,50,50, 0.3) );
+}
+
+
+/* Bootstrap Overwrites */
+
+.form-control:focus {
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	-ms-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
+}
+
+.popover {
+	max-width: 100% !important;
+}
+
+.modal {
+	.close {
+		font-size: 200%;
+	}
+	
+	.modal-body {
+		@include padding();
+	}
+}
+
+.btn {
+	outline: none !important;
+}
+
+
+/* Rules */
+
+html {
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	height: 100%;
+}
+
+*,
+*:before,
+*:after {
+	-webkit-box-sizing: inherit;
+	-moz-box-sizing: inherit;
+	box-sizing: inherit;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-height: 100%;
+	font-family: $fontFamily;
+	font-weight: $fontWeightNormal;
+	font-size: $fontSizeNormal;
+	
+	@include media-query( 0, $breakpointPhone ) {
+		font-size: $fontSizeSmall;
+	}
+	
+	@include media-query( $breakpointPhone, $breakpointTablet ) {
+		font-size: $fontSizeNormal;
+	}
+	
+	@include media-query( $breakpointTablet, $breakpointDesktop ) {
+		font-size: $fontSizeNormal;
+	}
+	
+	@include media-query-landscape( $breakpointDesktop, $breakpointLarge*2 ) {
+		font-size: $fontSizeBig;
+	}
+	
+	&.menu-unfolded {
+		#panorama,
+		#main {
+			@include blur(10);
+			@include scale-proportionaly(1.05);
+		}
+	}
+	
+	&.scrolled-1 #panorama {
+		@include blur(1);
+		@include scale-proportionaly(1.005);
+	}
+	
+	&.scrolled-2 #panorama {
+		@include blur(2);
+		@include scale-proportionaly(1.01);
+	}
+	
+	&.scrolled-3 #panorama {
+		@include blur(3);
+		@include scale-proportionaly(1.015);
+	}
+	
+	&.scrolled-4 #panorama {
+		@include blur(4);
+		@include scale-proportionaly(1.02);
+	}
+	
+	&.scrolled-5 #panorama {
+		@include blur(5);
+		@include scale-proportionaly(1.025);
+	}
+	
+	&.scrolled-6 #panorama {
+		@include blur(6);
+		@include scale-proportionaly(1.03);
+	}
+	
+	&.scrolled-7 #panorama {
+		@include blur(7);
+		@include scale-proportionaly(1.035);
+	}
+	
+	&.scrolled-8 #panorama {
+		@include blur(8);
+		@include scale-proportionaly(1.04);
+	}
+	
+	&.scrolled-9 #panorama {
+		@include blur(9);
+		@include scale-proportionaly(1.045);
+	}
+	
+	&.scrolled-10 #panorama {
+		@include blur(10);
+		@include scale-proportionaly(1.05);
+	}
+	
+	&.scrolled-5,
+	&.scrolled-6,
+	&.scrolled-7,
+	&.scrolled-8,
+	&.scrolled-9,
+	&.scrolled-10,
+	&.menu-unfolded {
+		#top {
+			background: $topBackgroundOpaque;
+			
+			@include media-query-portrait( 0, $breakpointPhone ) {
+				background: $defaultBackground;
+			}
+		}
+	}
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: $fontWeightLight;
+	@include word-wrap();
+}
+
+h1 {
+	font-size: 200%
+}
+
+h2 {
+	font-size: 175%
+}
+
+h3 {
+	font-size: 150%
+}
+
+h4 {
+	font-size: 130%;
+}
+
+h5 {
+	font-size: 115%;
+}
+
+h6 {
+	font-size: 100%;
+}
+
+p {
+	@include word-wrap();
+}
+
+b, strong, th {
+	font-weight: $fontWeightBold;
+}
+
+i {
+	font-style: italic;
+}
+
+a, a:link, a:visited, a:active {
+	color: $highlightColor;
+	
+	&:hover {
+		color: #005b00;
+	}
+}
+
+
+[class^="icon-"],
+[class*=" icon-"] {
+	font-family: brainicons;
+}
+
+
+.box {
+	@include box-appearence();
+	@include padding();
+	background: $defaultBackground;
+}
+
+
+#body {
+	position: relative;
+	min-height: 100%;
+	min-height: 100vh;
+}
+
+#menu {
+	$_color: $defaultBackground;
+	$_colorHover: $highlightColor;
+	$_colorActive: $_colorHover;
+	$_borderColor: rgba(255,255,255, 0.5);
+	
+	display: inline-block;
+	float: right;
+	max-width: 70%;
+	text-align: right;
+	color: $menuColor;
+	font-weight: $fontWeightBold;
+	font-size: 110%;
+
+	a, a:visited {
+		color: inherit;
+		padding: $defaultPadding /4;
+		
+		&:hover {
+			color: $_colorHover;
+			text-decoration: none;
+		}
+	}
+	
+	div.menu-icons {
+		display: none;
+		float: right;
+		margin-top: -10%;
+		
+		@include media-query( 0px, $breakpointPhone ) {
+			display: block;
+		}
+
+		@include media-query-portrait( 0, $breakpointPhone ) {
+			color: $highlightColor;
+			text-shadow: none;
+		}
+		
+		@include media-query-portrait( 0px, $breakpointTablet ) {
+			display: block;
+		}
+		
+		@include media-query-landscape( $breakpointPhone, $breakpointTablet ) {
+			display: block;
+		}
+		
+		span.icon-menu {
+			font-size: 250%;
+			-border-right: 1px solid rgba(255,255,255, 0.4);
+			-padding: $defaultPadding;
+			-margin-right: $defaultPadding;
+		}
+		
+		span.icon-chat,
+		span.icon-phone {
+			font-size: 200%;
+			vertical-align: text-bottom;
+			margin-right: $defaultPadding;
+		}
+	}
+
+	nav {
+		display: block;
+		
+		@include media-query( 0px, $breakpointPhone ) {
+			display: none;
+		}
+		
+		@include media-query-portrait( 0px, $breakpointTablet ) {
+			display: none;
+		}
+		
+		@include media-query-landscape( $breakpointPhone, $breakpointTablet ) {
+			display: none;
+		}
+		
+		&.unfolded {
+			display: block;
+			position: absolute;
+			position: fixed;
+			top: $topHeight;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			overflow: auto;
+			background: $menuUnfoldBackground;
+			border-top: 1px solid $_borderColor;
+			color: $_color;
+			font-size: 120%;
+			text-align: left;
+			
+			& > ul {
+				padding: 0;
+				margin: 0;
+				
+				li {
+					display: block;
+					padding: 0;
+					margin: 0;
+					border-top: 1px solid $_borderColor;
+					
+					&:first-child {
+						border-top: 0px;
+					}
+					
+					&.selected {
+						-background: $unexpectedColor;
+						color: $_colorActive;
+					}
+					
+					a {
+						display: block;
+						padding: $defaultPadding;
+						
+						&:hover {
+							color: inherit;
+							text-decoration: underline;
+						}
+					}
+				}
+			}
+		}
+		
+		& > ul {
+			padding: 0;
+			margin: 0;
+			-padding-left: $defaultPadding;
+		}
+
+		li {
+			display: inline-block;
+			position: relative;
+			list-style: none;
+			white-space: nowrap;
+			line-height: $topHeight - $defaultPadding*2;
+			margin-left: $defaultPadding;
+			
+			@include media-query( $breakpointPhone, $breakpointTablet ) {
+				margin-left: $defaultPadding/4;
+				font-size: 90%;
+			}
+			
+			@include media-query( $breakpointTablet, $breakpointDesktop ) {
+				margin-left: $defaultPadding/2;
+				font-size: 90%;
+			}
+			
+			&.selected {
+				color: $_colorActive;
+			}
+			
+			& > .contact-buttons {
+				display: inline-block;
+				
+				@include media-query( 0px, $breakpointTablet ) {
+					display: none;
+				}
+			}
+		}
+		
+		& > .contact-buttons {
+			display: none;
+			padding: $defaultPadding *2;
+			text-align: center;
+			border-bottom: 1px solid rgba(255,255,255, 0.5);
+			
+			@include media-query( 0px, $breakpointTablet ) {
+				display: block;
+			}
+		}
+	}
+}
+
+#top {
+	z-index: 100;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: $topHeight;
+	padding: $defaultPadding;
+	color: $menuColor;
+	background: $topBackground;
+	text-shadow: 0px 1px 5px rgba(0,0,0, 0.6);
+	@include default-box-shadow();
+	@include transition(background-color, 0.5s, linear);
+	
+	@include media-query-portrait( 0, $breakpointPhone ) {
+		background: $defaultBackground;
+	}
+
+	#logo {
+		display: inline-block;
+		font-family: $logoFontFamily;
+		font-size: $logoFontSize;
+		font-weight: bold;
+		line-height: $logoLineHeight +$defaultPadding/2;
+		float: left;
+		color: $menuColor;
+		
+		&:hover {
+			color: $highlightColor;
+		}
+		
+		@include media-query-portrait( 0, $breakpointPhone ) {
+			font-size: $logoFontSize - 0.5;
+			color: $highlightColor;
+			text-shadow: none;
+			
+			&:hover {
+				color: $unexpectedColor;
+			}
+		}
+	}
+	
+	nav {
+		.btn-group {
+			margin-left: $defaultPadding;
+			margin-top: -3px;
+
+			.btn {
+				height: 40px;
+				padding-left: $defaultPadding;
+				padding-right: $defaultPadding;
+				font-size: inherit;
+				font-weight: $fontWeightBold;
+				
+				&:hover, &:active {
+					color: inherit;
+				}
+			}
+		}
+	}
+
+	#selector {
+		display: block;
+		width: 400px;
+		margin: 0 auto;
+		padding-top: 58px;
+		text-align: center;
+
+		margin-left: 204px;
+		margin-right: 39px;
+		width: auto;
+
+		& > div {
+			display: inline-block;
+			width: 190px;
+			margin-right: 10px;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+
+	#languages {
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+
+		li {
+			display: inline-block;
+			vertical-align: top;
+
+			img {
+				width: 16px;
+				vertical-align: top;
+			}
+		}
+	}
+}
+
+#panorama {
+	@include stick-to-edges();
+	position: fixed;
+	@include transition(all, 0.5s, linear);
+
+/*
+-webkit-transform: ;
+-moz-transform: ;
+-ms-transform: ;
+-o-transform: ;
+transform: ;
+-webkit-filter: );
+-ms-filter: blur(+px);
+filter: url("data:image/svg+xml;utf8,<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur\"><feGaussianBlur stdDeviation=\"\" /></filter></svg>#blur");
+filter: blur(+px);
+*/
+
+
+	@include media-query-portrait( 0, $breakpointPhone ) {
+		top: $topHeight;
+	}
+	
+	& > img {
+		@include stick-to-edges();
+		
+		@include media-query-portrait( 0, $breakpointPhone ) {
+			margin-left: -20%;
+			margin-right: -20%;
+		}
+		
+		-width: 100%;
+		-height: 100%;
+		max-width: none;
+		max-height: none;
+		
+		@include media-query( 0, $breakpointPhone ) {
+			min-height: 60vh;
+		}
+	}
+	
+	.owl-carousel {
+		
+		.owl-stage-outer {
+			
+			.owl-stage {
+				.owl-item {
+					& > div {
+						img {
+							
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	.owl-nav {
+		& > div {
+			position: absolute;
+			top: 50%;
+			top: 50vh;
+			
+			&.owl-prev {
+				left: $defaultPadding;
+				
+				span:hover {
+					padding-left: $defaultPadding/2;
+				}
+			}
+			
+			&.owl-next {
+				right: $defaultPadding;
+				
+				span:hover {
+					padding-right: $defaultPadding/2;
+				}
+			}
+			
+			span {
+				margin-top: -50%;
+				padding: $defaultPadding;
+				color: #fff;
+				font-size: 5em;
+				@include default-text-shadow();
+			}
+			
+			@include media-query( 0, $breakpointPhone ) {
+				top: 35%;
+				top: 15vh;
+				
+				&.owl-prev {
+					left: 0px;
+				}
+				
+				&.owl-next {
+					right: 0px;
+				}
+				
+				span {
+					padding: $defaultPadding/2;
+					font-size: 3em;
+				}
+			}
+
+			@include media-query-landscape( 0, $breakpointPhone ) {
+				top: 35%;
+				top: 50vh;
+			}
+			
+			@include media-query-portrait( $breakpointPhone, $breakpointTablet ) {
+				top: 40%;
+				top: 20vh;
+				
+				span {
+					padding: 0;
+					font-size: 3em;
+				}
+			}
+		}
+	}
+}
+
+#main {
+	&, div.inner {
+		@include inner-contentbox();
+	}
+
+	display: block;
+	position: relative;
+	top: 50%;
+	top: 85vh;
+	padding-bottom: 0 !important;
+	
+	@include media-query( 0, $breakpointPhone ) {
+		top: 20%;
+		top: 45vh;
+		padding: 0 !important;
+	}
+	
+	@include media-query-landscape( 0, $breakpointPhone ) {
+		top: 99%;
+		top: 99vh;
+	}
+
+	@include media-query-portrait( $breakpointPhone, $breakpointTablet ) {
+		top: 20%;
+		top: 45vh;
+		padding: 0 !important;
+	}
+
+	#content {
+		z-index: 10;
+		position: relative;
+		background: $contentBackground;
+		@include default-box-shadow();
+		
+		img.fullwidth {
+			max-width: 100%;
+		}
+		
+		#sidebar {
+			@include padding();
+			float: right;
+			font-size: $fontSizeNormal;
+			background: $sidebarBackground;
+
+			.widget {
+				display: block;
+				width: 100%;
+				max-width: 100%;
+			}
+
+			[class^="icon-"],
+			[class*=" icon-"] {
+				font-size: $fontSizeNormal;
+			}
+		}
+
+		#onepage {
+			section {
+				display: block;
+				clear: left;
+				padding-bottom: $defaultVerticalMargin;
+			}
+		}
+
+		#sidebar .widget,
+		#onepage section {
+			.head {
+				display: block;
+				margin-bottom: $defaultPadding;
+
+				h1, h2, h3, h4, h5, h6 {
+					display: inline;
+				}
+
+				a, button {
+					float: right;
+					vertical-align: baseline;
+				}
+			}
+
+			img {
+				max-width: 100%;
+			}
+		}
+	}
+	
+	footer {
+		z-index: 5;
+		position: relative;
+		display: block;
+		background: $footerBackground;
+		min-height: $footerHeight;
+		font-size: $fontSizeSmall;
+		@include default-box-shadow();
+	
+		.breadcrumb {
+			background: none;
+			padding: 0;
+	
+			& > li + li::before {
+				content: "M";
+				font-family: Nighticon;
+				font-size: 0.8em;
+			}
+		}
+	}
+}
+
+
+#callModal {
+	.modal-body {
+		font-size: 400%;
+		font-weight: $fontWeightBold;
+		text-align: center;
+	}
+}
+
+
+#backtop,
+#scrolldown {
+	display: none;
+	position: fixed;
+	bottom: $defaultPadding;
+	right: $defaultPadding *2;
+	line-height: 0.7em;
+	padding: $defaultPadding /2;
+	cursor: pointer;
+	font-size: 48px;
+	color: $highlightColor;
+	background: #fff;
+	@include opacity(0.6);
+	@include border-radius(5px);
+
+	&:hover,
+	&:visited,
+	&:active {
+		text-decoration: none;
+		color: $highlightColor;
+	}
+
+	&:hover {
+		@include opacity(1);
+	}
+}
+
+
+/* Calendar */
+
+.calendar {
+	$backgroundColor_available: #00ed7f;
+	$borderColor_available: #00cd5f;
+	$fontColor_available: #000;
+	
+	$backgroundColor_booked: #ff456d;
+	$borderColor_booked: #cf153d;
+	$fontColor_booked: #fff;
+	
+	$_innerMargin: $defaultPadding /2;
+	$_innerPadding: $_innerMargin /2;
+	
+	margin: $defaultVerticalMargin 0;
+	
+	h2,
+	h3 {
+		padding: 0;
+		margin: 0;
+	}
+	
+	.year {
+		clear: both;
+		display: block;
+		margin: 0px -$defaultPadding;
+		padding-top: $defaultVerticalMargin;
+		
+		&:first-of-type {
+			padding-top: 0;
+		}
+		
+		& > h2,
+		& > h3 {
+			font-weight: bold;
+			padding: 0px $defaultPadding;
+		}
+		
+		.month {
+			clear: both;
+			display: inline-block;
+			padding: $defaultPadding;
+			width: 33%;
+			
+			@include media-query-portrait( 0, $breakpointPhone ) {
+				width: 100%;
+			}
+			
+			@include media-query-landscape( 0, $breakpointPhone ) {
+				width: 49%;
+			}
+			
+			@include media-query( $breakpointPhone, $breakpointTablet ) {
+				width: 49%;
+			}
+					
+			.week {
+				clear: both;
+				margin-left: -$_innerMargin;
+				margin-right: -$_innerMargin;
+				
+				&:first-child {
+					margin-top: $_innerMargin;
+				}
+				
+				.day {
+					display: inline-block;
+					position: relative;
+					width: 14.28%;
+					margin: 0;
+					padding: $_innerPadding;
+					float: left;
+					
+					&:before{
+						content: '';
+						display: block;
+						padding-top: 100%;
+					}
+					
+					&.ghost {
+						@include opacity(0);
+					}
+					
+					& > .inner-container {
+						@include stick-to-edges();
+						padding: $_innerPadding;
+						margin: $_innerMargin;
+						border: 1px solid silver;
+						text-align: center;
+						
+						.daynumber {
+							font-size: 100%;
+						}
+					}
+					
+					&.available {
+						& > .inner-container {
+							background: $backgroundColor_available;
+							border-color: $borderColor_available;
+							color: $fontColor_available;
+						}
+					}
+					
+					&.booked {
+						& > .inner-container {
+							background: $backgroundColor_booked;
+							border-color: $borderColor_booked;
+							color: $fontColor_booked;
+						}
+					}
+					
+					&.booked-end {
+						& > .inner-container {
+							color: $fontColor_available;
+							@include diagonal-background( $backgroundColor_booked, $backgroundColor_available );
+							border-top-color: $borderColor_booked;
+							border-left-color: $borderColor_booked;
+							border-right-color: $borderColor_available;
+							border-bottom-color: $borderColor_available;
+						}
+					}
+					
+					&.booked-begin {
+						& > .inner-container {
+							color: $fontColor_available;
+							@include diagonal-background( $backgroundColor_available, $backgroundColor_booked );
+							border-top-color: $borderColor_available;
+							border-left-color: $borderColor_available;
+							border-right-color: $borderColor_booked;
+							border-bottom-color: $borderColor_booked;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+/* Booking Form */
+
+form {
+	textarea {
+		&.fullwidth {
+			display: block;
+			width: 100%;
+		}
+	}
+	
+	.form-group {
+		label {
+			display: block;
+		}
+	}
+}
+
+
+/* Videos-Widget */
+
+.player-thumbnail {
+	$color: rgba(255,255,255, 0.5);
+	$colorHover: #fff;
+	$size: 80px;
+	$cut: 10%;
+
+	position: relative;
+	overflow: hidden;
+
+	img {
+		margin-top: -$cut;
+		margin-bottom: -$cut;
+	}
+
+	.play-button {
+		display: inline-block;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+
+		& > span {
+			$borderWeight: $size/20;
+
+			display: inline-block;
+			position: relative;
+			margin-top: -50%;
+			margin-left: -50%;
+			width: $size;
+			height: $size;
+			border: $borderWeight solid $color;
+			@include border-radius(100%);
+			text-align: center;
+			line-height: $size - $borderWeight;
+			font-size: $fontSizeBig *2;
+			color: $color;
+		}
+	}
+
+	&:hover .play-button > span {
+		color: $colorHover;
+		border-color: $colorHover;
+	}
+}
+
+.video-widget {
+	.player-thumbnail {
+		margin-bottom: $defaultPadding;
+	}
+}
+
+
+/* Photo Galery */
+
+.photo-galery {
+	$padding: $defaultPadding /2;
+
+	.title {
+	}
+
+	.description {
+		margin-bottom: $defaultVerticalMargin /2;
+	}
+
+	.thumbnail {
+		display: block;
+		position: relative;
+		padding: $padding;
+		width: 100%;
+		height: auto;
+
+		.image {
+			display: block;
+			position: relative;
+			width: 100%;
+			height: 250px;
+			overflow: hidden;
+
+			img {
+				display: block;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				height: 100%;
+				width: auto;
+				-webkit-transform: translate(-50%,-50%);
+				-ms-transform: translate(-50%,-50%);
+				transform: translate(-50%,-50%);
+
+				&.portrait {
+					height: auto;
+					width: 100%;
+				}
+			}
+		}
+
+		.caption {
+			background: rgba(255,255,255, 1);
+			color: #000;
+			position: absolute;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			padding: $padding;
+		}
+	}
+
+	.album .thumbnail .image {
+		height: 250px;
+	}
+
+	.photo .thumbnail .image {
+		height: 160px;
+	}
+}
+
+#onepage section .photo-galery {
+	.photo .thumbnail {
+		padding: 0;
+
+		.image {
+			height: 60px;
+		}
+	}
+}
+
+
+/* Quotes */
+
+.quote {
+	.text {
+		font-size: 36px;
+		font-style: italic;
+		font-weight: 300;
+	}
+
+	.meta {
+		margin-top: $defaultPadding;
+
+		& > span {
+			margin-right: $defaultPadding /2;
+		}
+	}
+}
+
+.quotes {
+	.quote {
+		padding: $defaultPadding *4 0;
+		margin-bottom: $defaultPadding *4;
+	}
+}
+
+
+/* Locations */
+
+.location-details {
+	margin-bottom: $defaultVerticalMargin;
+
+	.map {
+		width: 100%;
+		height: 25%;
+		max-height: 600px;
+		min-height: 400px;
+	}
+}

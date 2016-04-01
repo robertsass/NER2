@@ -1,0 +1,552 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface ContainerInterface {
+
+	function replaceString( $string, $replacement );
+	function summarize( $level, $indent );
+	function swallow( $content );
+	function subordinate( $name, $var, $var2, $selfclosing );
+	function subordinateAtBeginning( $name, $var, $var2, $selfclosing );
+	function append( $name, $var, $var2, $selfclosing );
+	function prepend( $name, $var, $var2, $selfclosing );
+	function parentSubordinate( $name, $var, $var2, $selfclosing );
+	function parent();
+	function setAttributes( $array );
+	function addAttribute( $name, $value );
+	function getTag();
+	function getAttribute( $name );
+	function getLastIndex();
+	function block( $state );
+	function clear();
+	function getSubcontainer();
+	function search( $condition, Container $Container );
+	function isSelfclosing();
+
+}
+
+
+/** Bietet während der gesamten Laufzeit komfortablen Umgang mit einer hierarchischen Dokumentstruktur
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class Container extends CoreClass implements ContainerInterface {
+
+	# Der Name (Tag) dieses Containers
+	private $container;
+
+	# Die Attribute dieses Containers
+	private $container_attributes = array();
+
+	# Das Array in dem alle Inhalte in ihrer Reihenfolge gespeichert sind
+	public $subelements = array();
+
+	# Enthalte ich weitere Container? Interessant fuer die Einrückung
+	private $contains_subcontainer = false;
+
+	# Verweist auf den nächst-höheren Container, dem dieser untergeordnet ist.
+	public $parent_container = null;
+
+	# Speichert die Position im übergeordneten Container, sprich meinen Schlüssel im übergeordneten Array
+	public $position_in_parent = null;
+
+	# Speichert den Index des zuletzt entgegengenommenen Inhalts
+	private $last_swallowed_index = null;
+
+	# Stellt der Container einen 'selfclosing' Tag (input, img, ...) dar?
+	private $selfclosing_container = false;
+
+	# Blockiert die Auslösfunktion
+	private $blocked = false;
+
+	# Rückt den erzeugten Code ein
+	private $indent;
+
+	# Aktiviert die Schnellinitialisierung (Definition von Attributen über den Container-Namen, ähnlich den Selektoren von jQuery)
+	public static $enable_short_initialization = true;
+
+	# Schnellinitialisierungs-Symbole
+	private static $symbols = array(
+		'name'	=>	':',
+		'value'	=>	'=',
+		'type'	=>	'(',
+		'id'	=>	'#',
+		'class'	=>	'.'
+	);
+
+	# Irrelevante zusätzliche Symbole zur Verbesserung der Lesbarkeit
+	private static $irrelevant_symbols = ')';
+
+
+	/*	Constructor: __construct
+		Instanziiert einen neuen Container, der bsp. einen HTML-Tag / -Container repräsentiert.
+
+		Parameters:
+			$containername - Tagname (z.B. "div")
+			$var - Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+			$var2 - Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+			$selfclosing - Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	*/
+	public function __construct( $containername, $var=null, $var2=null, $selfclosing=null ) {
+		$this->container = $this->short_init( $containername );
+		if( $var !== null ) {
+			if( is_array( $var ) )	// Interpretation als Attribute-Parameter: Wenn es ein Array ist
+				$this->setAttributes( $var );
+			else	// Interpretation als Erster Inhalt: Wenn es eben kein Array ist
+				$this->swallow( $var );
+		}
+		if( $var2 !== null ) {
+			if( is_array( $var2 ) )	// Interpretation als Attribute-Parameter: Wenn es ein Array ist
+				$this->setAttributes( $var2 );
+			else	// Interpretation als Erster Inhalt: Wenn es eben kein Array ist
+				$this->swallow( $var2 );
+		}
+		if( $selfclosing == true || ($selfclosing === null && $this->iselfclosing_recognition()) )
+			$this->selfclosing_container = true;
+		return $this;
+	}
+
+
+	# Entscheidet bei einigen Tags selber, ob sie 'selfclosing' sind
+	private function iselfclosing_recognition() {
+		$typically_selfclosing_tags = array( 'img', 'input', 'br', 'link', 'meta' );
+		if( in_array( $this->container, $typically_selfclosing_tags ) )
+			return true;
+		return false;
+	}
+
+
+	/** Ersetzt in allen Subelementen einen String durch einen anderen
+	 * @param string $string Suchstring
+	 * @param string $replacement Ersatz
+	 * @return Container Gibt das aufgerufene Objekt selbst wieder zurück.
+	 */
+	public function replaceString( $string, $replacement ) {
+		foreach( $this->subelements as $k => $subelement ) {
+			if( is_object( $subelement ) && $subelement instanceof Container )
+				$subelement->replaceString( $string, $replacement );
+			elseif( $subelement !== null && is_string( $subelement ) )
+				$this->subelements[ $k ] = str_replace( $string, $replacement, $subelement );
+		}
+		return $this;
+	}
+
+
+	# Gibt den Ausloesbefehl an die Untercontainer weiter und rueckt den Inhalt ein
+	private function assemble( $ebene ) {
+		$content = '';
+		foreach( $this->subelements as $k => $p ) {
+			if( $this->indent ) {
+				if( is_object($p) )
+					$content .= ( ($k > 0 && count($p->subelements) > 0) ? "\n" : '' ) . $p->summarize( $ebene+1, $this->indent );
+				elseif( $p !== null )
+					$content .= ( ($this->contains_subcontainer) ? $this->indent_code($ebene+1) : '' ) . $p . ( (count($this->subelements) > 1) ? "\n" : '' );
+			}
+			else {
+				if( is_object($p) )
+					$content .= $p->summarize( $ebene+1, $this->indent );
+				elseif( $p !== null )
+					$content .= $p;
+			}
+		}
+		return $content;
+	}
+
+
+	# Rueckt den Inhalt ein
+	private function indent_code( $ebene ) {
+		if( !$this->indent )
+			return '';
+		$einrueckung = '';
+		for( $i = 0; $i < $ebene; $i++ ) {
+			$einrueckung .= '  ';
+		}
+		return $einrueckung;
+	}
+
+
+	# Setzt alle Elemente des Attribute-Arrays zu HTML-Code zusammen
+	private function build_attributes_string() {
+		$AttributesString = '';
+		if( is_array($this->container_attributes) ) {
+			foreach( $this->container_attributes as $attribute => $value ) {
+				if( $attribute == 'src' || $attribute == 'href' )
+					$value = Core::functions()->rewriteResourceUrl( $value );
+				$AttributesString .= ' ' . $attribute . '="' . $value . '"';
+			}
+		}
+		return $AttributesString;
+	}
+
+
+	# Bildet den Eroeffnungstag (<tag attribut1="wert1">)
+	private function build_opening_tag( $ebene ) {
+		$openingTag = $this->indent_code( $ebene ) . '<' . $this->container;
+		$openingTag .= $this->build_attributes_string();
+		$openingTag .= ($this->selfclosing_container ? ' /' : '') . '>';
+		if( $this->indent && ( count($this->subelements) > 1 || $this->contains_subcontainer || $this->selfclosing_container ) ) $openingTag .= "\n";
+		return $openingTag;
+	}
+
+
+	# Bildet den Schlusstag (</tag>)
+	private function build_closing_tag( $ebene ) {
+		$closingTag = ((count($this->subelements) > 1 || $this->contains_subcontainer) ? $this->indent_code($ebene) : '') . '</' . $this->container . '>' . ($this->indent ? "\n" : '');
+		return $closingTag;
+	}
+
+
+	/** Löst den Zusammenpack-Mechanismus dieses und aller untergeordneten Container aus und gibt den erzeugten HTML-Code zurück.
+	 * @param int $level Integer-Wert der Ebene der Verschachtelung (u.A. zur korrekten Einrückung)
+	 * @param boolean $indent|true Einrücken ja/nein (optional; bei fehlender Angabe standardmäßig true)
+	 * @return string Der zusammengebaute HTML-Quelltext
+	 */
+	public function summarize( $level=0, $indent=true ) {
+		if( $this->blocked )
+			return null;
+		$this->indent = $indent;
+		if( !$this->selfclosing_container )
+			$assembledContent = $this->assemble( $level );
+		return $this->build_opening_tag( $level ) . ( $this->selfclosing_container ? '' : $assembledContent . $this->build_closing_tag( $level ) );
+	}
+
+
+	/*	Function: __toString
+		Beim Versuch, ein Container-Objekt als String zu verwenden, wird die Auslösefunktion aufgerufen.
+	*/
+	public function __toString() {
+		return $this->summarize();
+	}
+
+
+	/** Schluckt Inhalt (falls es ein Container-Objekt ist, wird es diesem untergeordnet).
+	 * @param mixed $content Aufzunehmender Inhalt, mögliche Werte: String / Container-Objekt
+	 * @return Container Gibt das aufgerufene Container-Objekt selbst zurück
+	 */
+	public function swallow( $content ) {
+		$this->subelements[] = $content;
+		$this->last_swallowed_index = (count($this->subelements)-1);
+		if( is_a( $content, __CLASS__ ) ) {
+			$this->contains_subcontainer = true;
+			return $this->last_swallowed_index;
+		}
+		return $this;
+	}
+
+
+	/** Ordnet diesem Container einen neuen Container unter.
+	 * @param string $names Tagname (z.B. "div", oder auch "div > p")
+	 * @param mixed $var|null Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param mixed $var2|null Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param boolean $selfclosing|null Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	 * @return Container Die Instanz des neu eingefügten Containers
+	 */
+	public function subordinate( $names, $var=null, $var2=null, $selfclosing=null ) {
+		$names = explode( '>', $names );
+		if( count( $names ) == 1 ) {
+			$name = current( $names );
+			$Container = new self( $name, $var, $var2, $selfclosing );
+			$Container->position_in_parent = $this->swallow( $Container );
+			$Container->parent_container = $this;
+			return $Container;
+		}
+		else {
+			$Container = $this;
+			$namesCount = count( $names );
+			foreach( $names as $index => $name ) {
+				$name = trim( $name );
+				if( $index == ($namesCount-1) )
+					$Container = $Container->subordinate( $name, $var, $var2, $selfclosing );
+				else
+					$Container = $Container->subordinate( $name );
+			}
+			return $Container;
+		}
+	}
+
+
+	/** Ordnet einen neuen Container am Anfang unter.
+	 * @param string $name Tagname (z.B. "div")
+	 * @param mixed $var|null Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param mixed $var2|null Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param boolean $selfclosing|null Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	 * @return Container Die Instanz des neu eingefügten Containers
+	 */
+	public function subordinateAtBeginning( $name, $var=null, $var2=null, $selfclosing=null ) {
+		$original_subelements = $this->subelements;
+		$this->subelements = array();
+		$Container = $this->subordinate( $name, $var, $var2, $selfclosing );
+		$this->subelements = array_merge( $this->subelements, $original_subelements );
+		return $Container;
+	}
+
+
+	/** Ordnet neuen Inhalt neben diesen Container (dem Elternobjekt unterordnen). Vorsicht: bei Uneindeutigkeit (ausschließliche Angabe des Containernamens ohne Übergabe von Inhalt bzw. eines Attribute-Arrays) wird es als String statt als neues Container-Objekt untergeordnet. Verwenden Sie in diesem Fall stattdessen parentSubordinate() um das Erzeugen eines neuen Objektes zu erzwingen.
+	 * @param string $names Tagname (z.B. "div", oder auch "div > p")
+	 * @param mixed $var|null Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param mixed $var2|null Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param boolean $selfclosing|null Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	 * @return Container Die Instanz des neu eingefügten Containers
+	 */
+	public function append( $names, $var=null, $var2=null, $selfclosing=null ) {
+		$names = explode( '>', $names );
+		if( count( $names ) == 1 ) {
+			$name = current( $names );
+			$Parent = $this->parent();
+			if( !$Parent )
+				return null;
+			if( $var === null && $var2 === null && $selfclosing === null )
+				return $Parent->swallow( $name );
+			return $Parent->subordinate( $name, $var, $var2, $selfclosing );
+		}
+		else {
+			$Container = $this;
+			foreach( $names as $name ) {
+				$name = trim( $name );
+				$Container = $Container->subordinate( $name, $var, $var2, $selfclosing );
+			}
+			return $Container;
+		}
+	}
+
+
+	/** Ordnet einen neuen Container vor diesen Container (dem Elternobjekt an den Anfang unterordnen).
+	 * @param string $name Tagname (z.B. "div")
+	 * @param mixed $var|null Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param mixed $var2|null Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param boolean $selfclosing|null Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	 * @return Container Die Instanz des neu eingefügten Containers
+	 */
+	public function prepend( $name, $var=null, $var2=null, $selfclosing=null ) {
+		$Parent = $this->parent();
+		if( !$Parent )
+			return null;
+		$original_subelements = $Parent->subelements;
+		$Parent->subelements = array();
+		$Container = $this->append( $name, $var, $var2, $selfclosing );
+		$Parent->subelements = array_merge( $Parent->subelements, $original_subelements );
+		return $Container;
+	}
+
+
+	/** Ordnet einen neuen Container neben diesen Container (dem Elternobjekt unterordnen).
+	 * @param string $name Tagname (z.B. "div")
+	 * @param mixed $var|null Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param mixed $var2|null Weiterer Inhalt des Containers, mögliche Werte: String / Array (Elemente werden als Attribute des Containers behandelt) / Container-Objekt (wird verschachtelt)
+	 * @param boolean $selfclosing|null Angabe ob dieser Container `selfclosing` ist, d.h. keinen Schlusstag benötigt (true/false; standardmäßig wird dies wird dies anhand des Tagnamens automatisch ermittelt)
+	 * @return Container Die Instanz des neu eingefügten Containers
+	 */
+	public function parentSubordinate( $name, $var=null, $var2=null, $selfclosing=null ) {
+		$Parent = $this->parent();
+		if( !$Parent )
+			return null;
+		return $Parent->subordinate( $name, $var, $var2, $selfclosing );
+	}
+
+
+	/** Gibt das Elternobjekt zurück, dem der angesprochene Container untergeordnet ist.
+	 * @return Container Gibt den übergeordneten Container oder null zurück
+	 */
+	public function parent() {
+		return $this->parent_container;
+	}
+
+
+	/** Setzt die Attribute dieses Containers; falls bereits definiert werden die alten Werte überschrieben. Gibt, wenn kein Array übergeben wurde, false zurück.
+	 * @param array $array Ein Array mit den Attributen als Schlüssel und deren jeweiligen Werten.
+	 */
+	public function setAttributes( $array ) {
+		if( is_array( $array ) ) {
+			$this->container_attributes = array_merge( $this->container_attributes, $array );
+			foreach( $this->container_attributes as $i => $val )
+				if( strval( $val ) == '' || $val === null )
+					unset( $this->container_attributes[$i] );
+			return true;
+		}
+		else
+			return false;
+	}
+
+
+	/** Fügt dem aktuellen Container ein Attribut hinzu. Falls es bereits definiert ist, wird der Wert getrennt von einem Leerzeichen an den Alten angehängt.
+	 * @param string $name Attributname
+	 * @param string $value Wert
+	 * @return Container Selbstreferenz
+	 */
+	public function addAttribute( $name, $value ) {
+		if( isset( $this->container_attributes[$name] ) )
+			$this->container_attributes[$name] = $this->container_attributes[$name] .' '. $value;
+		else
+			$this->container_attributes[$name] = $value;
+		return $this;
+	}
+
+
+	/** Gibt den Containernamen (Tag) zurück
+	 * @return string Bezeichnung des Containers
+	 */
+	public function getTag() {
+		return $this->container;
+	}
+
+
+	/** Gibt den Wert eines Attributes zurück oder false falls es nicht definiert ist.
+	 * @param string $name Abzufragendes Attribut
+	 * @return string
+	 */
+	public function getAttribute( $name ) {
+		if( isset( $this->container_attributes[ $name ] ) )
+			return $this->container_attributes[ $name ];
+		else
+			return false;
+	}
+
+
+	/** Gibt den internen Index des zuletzt aufgenommenen Inhaltes zurück.
+	 * @return int
+	 */
+	public function getLastIndex() {
+		return $this->last_swallowed_index;
+	}
+
+
+	/** Löscht alle aufgenommenen Inhalte.
+	 * @return Container Selbstreferenz
+	 */
+	public function clear() {
+		$this->subelements = array();
+		return $this;
+	}
+
+
+	/** Blockiert die Auslösefunktion des Containers, sodass er und alle Unterobjekte nicht ausgegeben werden.
+	 * @param boolean $state|true Blockieren (true) oder Blockade wieder aufheben (false)
+	 * @return Container Selbstreferenz
+	 */
+	public function block( $state=true ) {
+		$this->blocked = $state;
+		return $this;
+	}
+
+
+	/** Gibt ein Array aller Untercontainer zurück (nur die Objekte, nicht die Texte).
+	 * @return array
+	 */
+	public function getSubcontainer() {
+		$subcontainer = array();
+		foreach( $this->subelements as $subelement )
+			if( is_object($subelement) )
+				$subcontainer[] = $subelement;
+		return $subcontainer;
+	}
+
+
+	/** Durchsucht diesen und alle Untercontainer auf ein bestimmtes Kriterium (Tagname / Attribut) und gibt alle zutreffenden Containerobjekte zurück.
+	 * @param mixed $condition Suchkriterium, mögliche Werte: (string) Tagname / (array) Attribut => Wert
+	 * @param Container $Container|null Container, in dem gesucht werden soll; falls null wird der gerade aufgerufene verwendet
+	 * @return array
+	 */
+	public function search( $condition, Container $Container=null ) {
+		if( $Container === null )
+			$Container = $this;
+		if( is_string($condition) )
+			$condition = array('tag' => $condition);
+		$finds = array();
+		if( $Container instanceof Container ) {
+			foreach( $Container->getSubcontainer() as $subcontainer ) {
+				foreach( $condition as $kriterium => $sollwert ) {
+					if(	$kriterium == 'tag' && $subcontainer->getTag() == $sollwert )
+						$finds[] = $subcontainer;
+					elseif( $subcontainer->getAttribute($kriterium) == $sollwert )
+						$finds[] = $subcontainer;
+				}
+				$finds = array_merge( $finds, $this->search( $condition, $subcontainer ) );
+			}
+		}
+		return $finds;
+	}
+
+
+	/** Gibt zurück ob der Container als 'selfclosing' eingestuft bzw. festgelegt wurde.
+	 * @return boolean
+	 */
+	public function isSelfclosing() {
+		if( $this->selfclosing_container )
+			return true;
+		return false;
+	}
+
+
+	/*	Function: short_init
+		Wenn aktiviert, werden im Namen definierte Attribute extrahiert, übernommen und der Containername zurückgegeben
+	*/
+	private function short_init( $containername ) {
+		if( Container::$enable_short_initialization ) {
+			$defs = $this->split_containername( $containername );
+			$attributes = $this->extract_attributes( $defs );
+			$containername = $this->extract_containername( $defs );
+			$this->setAttributes( $attributes );
+		}
+		return $containername;
+	}
+
+
+	/*	Function: extract_attributes
+		Wenn aktiviert, extrahiert diese Funktion im Containernamen definierte Attribute und setzt diese
+	*/
+	private function extract_attributes( $defs ) {
+		$attributes = array();
+		$keys = array_flip( self::$symbols );
+		foreach( $defs as $def ) {
+			$symbol = substr( $def, 0, 1 );
+			$str = trim( substr( $def, 1 ), self::$irrelevant_symbols );
+			if( in_array( $symbol, self::$symbols ) ) {
+				if( isset( $attributes[ $keys[ $symbol ] ] ) )
+					$attributes[ $keys[ $symbol ] ] .= ' '. $str;
+				else
+					$attributes[ $keys[ $symbol ] ] = $str;
+			}
+		}
+		return $attributes;
+	}
+
+
+	/*	Function: extract_containername
+		Wenn aktiviert, entfernt diese Funktion im Containernamen definierte Attribute und gibt nur den Containernamen zurück
+	*/
+	private function extract_containername( $defs ) {
+		foreach( $defs as $def ) {
+			$symbol = substr( $def, 0, 1 );
+			$str = $def;
+			if( !in_array( $symbol, self::$symbols ) )
+				return $str;
+		}
+		return '';
+	}
+
+
+	/*	Function: split_containername
+		Teilt den Containernamen in seine Definitionen
+	*/
+	private function split_containername( $containername ) {
+		foreach( self::$symbols as $attr => $symbol ) {
+			$containername = str_replace( $symbol, '\\'. $symbol , $containername );
+		}
+		return explode( '\\', $containername );
+	}
+
+
+}

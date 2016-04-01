@@ -1,0 +1,135 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Site;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface CrawlerReviewSearchInterface {
+
+	static function add( $movieIdOrInstance, $title, $url );
+
+	static function getByMovie( $movieIdOrInstance );
+	static function getByTitle( $title );
+	static function getByUrl( $url );
+
+	function getMovie();
+
+	function remove();
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class CrawlerReviewSearch extends \rsCore\DatabaseDatasetAbstract implements CrawlerReviewSearchInterface, \rsCore\CoreFrameworkInitializable {
+
+
+	protected static $_databaseTable = 'crawler-review-searches';
+
+
+/* CoreFrameworkInitializable methods */
+
+	/** Wird beim Autoloading dieser Klasse aufgerufen, um diese Klasse als DatabaseDatasetHandler zu registrieren
+	 * @internal
+	 */
+	public static function frameworkRegistration() {
+		\rsCore\Core::core()->registerDatabaseDatasetHandler( static::getDatabaseConnection(), '\\'. __CLASS__ );
+	}
+
+
+/* Static methods */
+
+	/** Findet einen Datensatz anhand des Titels und der URL oder legt ihn an
+	 * @param mixed $movieIdOrInstance
+	 * @param string $title
+	 * @param string $url
+	 * @return CrawlerReviewSearch
+	 * @api
+	 */
+	public static function add( $movieIdOrInstance, $title, $url ) {
+		$Dataset = self::getByColumns( array('title' => $title, 'url' => $url), false );
+		if( !$Dataset ) {
+			$Dataset = self::create();
+			if( $Dataset ) {
+				$Dataset->movieId = is_object( $movieIdOrInstance ) ? $movieIdOrInstance->getPrimaryKeyValue() : intval( $movieIdOrInstance );
+				$Dataset->title = $title;
+				$Dataset->url = $url;
+				$Dataset->adopt();
+			}
+		}
+		return $Dataset;
+	}
+
+
+	/** Findet einen Datensatz anhand der Movie ID
+	 * @param mixed $movieIdOrInstance
+	 * @return CrawlerReviewSearch
+	 * @api
+	 */
+	public static function getByMovie( $movieIdOrInstance ) {
+		$movieId = is_object( $movieIdOrInstance ) ? $movieIdOrInstance->getPrimaryKeyValue() : intval( $movieIdOrInstance );
+		return self::getByColumns( array('movieId' => $movieId), false );
+	}
+
+
+	/** Findet einen Datensatz anhand des Titels
+	 * @param string $title
+	 * @return CrawlerReviewSearch
+	 * @api
+	 */
+	public static function getByTitle( $title ) {
+		return self::getByColumns( array('title' => $title), false );
+	}
+
+
+	/** Findet einen Datensatz anhand des Titels
+	 * @param string $url
+	 * @return CrawlerReviewSearch
+	 * @api
+	 */
+	public static function getByUrl( $url ) {
+		return self::getByColumns( array('url' => $url), false );
+	}
+
+
+/* Public methods */
+
+	/** Gibt den zugehörigen Movie zurück
+	 * @return CrawlerMovie
+	 * @api
+	 */
+	public function getMovie() {
+		return CrawlerMovie::getById( $this->movieId );
+	}
+
+
+/* Filter */
+
+	protected function encodeTitle( $value ) {
+		return trim( html_entity_decode( strip_tags( $value ) ) );
+	}
+
+
+	protected function encodeUrl( $value ) {
+		return strip_tags( $value );
+	}
+
+
+	protected function decodeUrl( $value ) {
+		return urldecode( $value );
+	}
+
+
+}

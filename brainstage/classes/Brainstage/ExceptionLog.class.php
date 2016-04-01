@@ -1,0 +1,180 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Brainstage;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface ExceptionLogInterface {
+
+	static function hello();
+	static function createLogEntry();
+	static function getExceptions( $limit, $start );
+	static function getExceptionById( $exceptionId );
+
+	function getFile();
+	function getLine();
+	function getTitle();
+	function getText();
+	function getDate( $format );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class ExceptionLog extends \rsCore\DatabaseDatasetAbstract implements ExceptionLogInterface, \rsCore\CoreFrameworkInitializable, \rsCore\DatabaseDatasetCachingInterface {
+
+
+	protected static $_databaseTable = 'brainstage-exceptions';
+
+
+	/* CoreFrameworkInitializable methods */
+
+	/** Wird beim Autoloading dieser Klasse aufgerufen, um diese Klasse als DatabaseDatasetHandler zu registrieren
+	 * @internal
+	 */
+	public static function frameworkRegistration() {
+		\rsCore\Core::core()->registerDatabaseDatasetHandler( static::getDatabaseConnection(), '\\'. __CLASS__ );
+	}
+
+
+	/* Static methods */
+
+	/** Macht nichts
+	 * @internal
+	 */
+	public static function hello() {
+		\rsCore\Auth::isLoggedin();
+	}
+
+
+	/** Erstellt einen neuen Protokoll-Eintrag
+	 * @return ExceptionLog
+	 * @api
+	 */
+	public static function createLogEntry() {
+		$Log = self::create();
+		if( $Log ) {
+			$CurrentUser = \rsCore\Auth::getUser();
+			if( $CurrentUser )
+				$Log->userInfo = json_encode( $CurrentUser->getColumns() );
+			$Log->sessionVariables = json_encode( $_SESSION );
+			$Log->queryUrl = json_encode( \rsCore\Core::core()->getRequestPath()->getArray() );
+			$Log->timestamp = time();
+		}
+		return $Log;
+	}
+
+
+	/** Gibt alle registrierten Exceptions zurück
+	 * @return array Array von ExceptionLog-Instanzen
+	 * @api
+	 */
+	public static function getExceptions( $limit=null, $start=0 ) {
+		return self::getDatabaseConnection()->getAll( null, 'ORDER BY `id` DESC ' .($limit !== null ? 'LIMIT '. intval($start) .','. intval($limit) : '') );
+	}
+
+
+	/** Findet einen ExceptionLog anhand der ID
+	 * @param integer $exceptionId
+	 * @return ExceptionLog
+	 * @api
+	 */
+	public static function getExceptionById( $exceptionId ) {
+		return self::getByPrimaryKey( intval( $exceptionId ) );
+	}
+
+
+	/** Gibt die Datei des Auftretens zurück
+	 * @param boolean $shortRelativePath
+	 * @return string
+	 * @api
+	 */
+	public function getFile( $shortRelativePath=true ) {
+		$file = $this->file;
+		if( $shortRelativePath )
+			$file = str_replace( str_replace( 'brainstage', '', dirname( BASE_SCRIPT_FILE ) ), '', $file );
+		return $file;
+	}
+
+
+	/** Gibt die Zeile des Auftretens zurück
+	 * @return int
+	 * @api
+	 */
+	public function getLine() {
+		return intval( $this->line );
+	}
+
+
+	/** Gibt den Titel des Fehlers zurück
+	 * @return string
+	 * @api
+	 */
+	public function getTitle() {
+		return $this->title;
+	}
+
+
+	/** Gibt die ausführliche Fehlerbeschreibung zurück
+	 * @return string
+	 * @api
+	 */
+	public function getText() {
+		return $this->text;
+	}
+
+
+	/** Dekodiert den Timestamp
+	 * @param string $format
+	 * @return string
+	 * @api
+	 */
+	public function getDate( $format ) {
+		return date( $format, $this->timestamp );
+	}
+
+
+	/** Wird beim Übernehmen von Änderungen aufgerufen
+	 */
+	protected function onChange() {
+		parent::onChange();
+		if( $this->title == $this->text )
+			$this->text = null;
+	}
+
+
+	/** Kodiert den Titel
+	 * @param string $value
+	 * @return string
+	 */
+	protected function encodeTitle( $value ) {
+		$value = addslashes( $value );
+		$value = rtrim( substr( $value, 0, 200 ), '\\' );
+		return $value;
+	}
+
+
+	/** Kodiert den Text
+	 * @param string $value
+	 * @return string
+	 */
+	protected function encodeText( $value ) {
+		$value = addslashes( $value );
+		return $value;
+	}
+
+
+}

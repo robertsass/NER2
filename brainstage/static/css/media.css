@@ -1,0 +1,15 @@
+#media .progress .progress-bar-striped.active {
+  width: 100%; }
+#media .upload-form .progress {
+  margin-top: 20px;
+  margin-bottom: 0px; }
+#media div.pagination {
+  display: block;
+  width: auto;
+  text-align: center; }
+table tr .removeFile {
+ display: none;
+ cursor: pointer; }
+
+table tr:hover .removeFile {
+ display: inline-block; }

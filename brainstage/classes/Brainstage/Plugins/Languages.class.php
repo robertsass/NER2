@@ -1,0 +1,181 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Brainstage\Plugins;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface LanguagesInterface extends PluginInterface {
+}
+
+
+/** LanguagesPlugin
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends \rsCore\Plugin
+ */
+class Languages extends \Brainstage\Plugin implements LanguagesInterface {
+
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param Framework $Framework
+	 */
+	public static function brainstageRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'buildHead' );
+		$Framework->registerHook( $Plugin, 'buildBody' );
+		$Framework->registerHook( $Plugin, 'getNavigatorItem' );
+	}
+
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin in die Menüreihenfolge einsortieren kann
+	 * @return int Desto höher der Wert, desto weiter oben erscheint das Plugin
+	 */
+	public static function brainstageSortValue() {
+		return 50;
+	}
+
+
+	/** Wird von der API aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function apiRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'list', 'api_getLanguages' );
+		$Framework->registerHook( $Plugin, 'add', 'api_addLanguage' );
+	}
+
+
+	/** Wird von Brainstage aufgerufen, um abzufragen, welche Rechtebezeichner vom Plugin verwendet werden
+	 *
+	 * @return array
+	 */
+	public static function registerPrivileges() {
+		return 'add,edit,delete';
+	}
+
+
+/* Private Methoden */
+
+	/** Dient als Konstruktor-Erweiterung
+	 */
+	protected function init() {
+	}
+
+
+	protected function getPluginTitle() {
+		return self::t("Languages");
+	}
+
+
+/* Brainstage Plugin */
+
+	/** Ergänzt den Header
+	 * @param \rsCore\ProtectivePageHead $Head
+	 */
+	public function buildHead( \rsCore\ProtectivePageHead $Head ) {
+		$Head->linkScript( 'static/js/languages.js' );
+		$Head->linkStylesheet( 'static/css/languages.css' );
+	}
+
+
+	/** Ergänzt den Navigator
+	 * @return string
+	 */
+	public function getNavigatorItem() {
+		return $this->getPluginTitle();
+	}
+
+
+	/** Ergänzt den MainContent
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildBody( \rsCore\Container $Container ) {
+		if( self::may('add') )
+			$this->buildForm( $Container );
+		$this->buildLanguageTable( $Container );
+	}
+
+
+	/** Baut das Formular zum Anlegen neuer Sprachen
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildForm( \rsCore\Container $Container ) {
+		$Colset = $Container->subordinate( 'header > div.add-form > div.row' );
+		$Colset->subordinate( 'div.col-md-5 > input.form-control(text):name' )
+			->addAttribute( 'placeholder', self::t("Name") );
+		$Colset->subordinate( 'div.col-md-5 > input.form-control(text):locale' )
+			->addAttribute( 'placeholder', self::t("Locale") );
+		$Colset->subordinate( 'div.col-md-2 > button.btn btn-block btn-primary addLanguage(button)', self::t("Add") );
+	}
+
+
+	/** Baut die Sprachtabelle
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildLanguageTable( \rsCore\Container $Container ) {
+		$Table = $Container->subordinate( 'div.headered > table.table table-hover table-striped' );
+		$Row = $Table->subordinate( 'thead > tr' );
+		$Row->subordinate( 'th', self::t("Name") );
+		$Row->subordinate( 'th', self::t("Locale") );
+		$Row->subordinate( 'th', self::t("Short Code") );
+		$TableBody = $Table->subordinate( 'tbody' );
+
+		foreach( \Brainstage\Language::getLanguages() as $Language ) {
+			$Row = $TableBody->subordinate( 'tr' );
+			$Row->subordinate( 'td', $Language->name );
+			$Row->subordinate( 'td', $Language->locale );
+			$Row->subordinate( 'td', $Language->shortCode );
+		}
+	}
+
+
+/* API Plugin */
+
+	/** Gibt ein Array aller bekannten Sprachen aus
+	 * @return array
+	 */
+	public function api_getLanguages( $params ) {
+		self::throwExceptionIfNotAuthorized();
+
+		$languages = array();
+		foreach( \Brainstage\Language::getLanguages() as $Language ) {
+			$columns = $Language->getColumns();
+			unset( $columns['id'] );
+			$languages[] = $columns;
+		}
+		return $languages;
+	}
+
+
+	/** Fügt eine Sprache hinzu
+	 * @return boolean
+	 */
+	public function api_addLanguage( $params ) {
+		self::throwExceptionIfNotPrivileged( 'add' );
+		$locale = valueByKey( $params, 'locale' );
+		$shortCode = valueByKey( $params, 'shortCode', \rsCore\Localization::extractLanguageCode( $locale ) );
+		$name = valueByKey( $params, 'name' );
+		if( !$name || !$locale || strlen($name) <= 0 || strlen($locale) <= 0 )
+			return false;
+		$Language = \Brainstage\Language::addLanguage( $name, $shortCode, $locale );
+		if( $Language )
+			return true;
+		return false;
+	}
+
+
+}
