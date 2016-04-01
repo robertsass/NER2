@@ -1,0 +1,11 @@
+#main #blog article {
+  margin-bottom: 20px;
+}
+#main #blog article .meta {
+  color: #999;
+  margin: 10px 0;
+}
+#main #blog article .meta > span {
+  margin-right: 20px;
+}
+

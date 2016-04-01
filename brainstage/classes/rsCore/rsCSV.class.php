@@ -1,0 +1,194 @@
+<?php	/* rsCSV 1.0 */
+
+class rsCSV {
+
+
+	protected static $possibleSeparators = array( ',', ';' );
+	protected static $defaultRowSeparator = "\n";
+	protected static $escapeChar = '"';
+
+	private $data;
+	private $rowSeparator;
+	private $columnSeparator = null;
+
+
+	private function __construct( $input=null, $separator=null ) {
+		$this->data = array();
+		$this->rowSeparator = self::$defaultRowSeparator;
+		$this->columnSeparator = self::$possibleSeparators[0];
+
+		if( $input !== null ) {
+			if( is_array( $input ) )
+				$this->initWithArray( $input );
+			if( is_string( $input ) )
+				$this->decodeCSV( $string, $separator );
+		}
+	}
+
+
+	public static function parseFile( $filename, $separator=null ) {
+		if( is_file( $filename ) )
+			return self::parseString( file_get_contents( $filename ), $separator );
+		return null;
+	}
+
+
+	public static function parseString( $string, $separator=null ) {
+		$Instance = new self();
+		$Instance->decodeCSV( $string, $separator );
+		return $Instance;
+	}
+
+
+	public static function newFromArray( array $array, $separator=null ) {
+		$Instance = new self();
+		$Instance->initWithArray( $array, $separator );
+		return $Instance;
+	}
+
+
+	private function initWithArray( array $array, $separator=null ) {
+		if( $separator !== null )
+			$this->columnSeparator = $separator;
+
+		if( is_array( $array[0] ) ) {	// Multidimensionales Array
+			foreach( $array as $row ) {
+				$Line = $this->addRow();
+				foreach( $row as $column ) {
+					$Line->addColumn( $column );
+				}
+			}
+		} else {
+			$Line = $this->addRow();
+			foreach( $array as $column ) {
+				$Line->addColumn( $column );
+			}
+		}
+		return $this;
+	}
+
+
+	private function decodeCSV( $source, $separator=null ) {
+		$rows = explode( $this->rowSeparator, $source );
+
+		if( $separator === null ) {
+			if( $this->columnSeparator === null ) {
+				$separator = self::detectSeparator( $rows[0] );
+				$this->columnSeparator = $separator;
+			}
+			else
+				$separator = $this->columnSeparator;
+		}
+
+		foreach( $rows as $row ) {
+			$Line = $this->addRow();
+	// @todo: Vorkommnisse des Separators innerhalb von Strings sollen natürlich übergangen werden
+			$columns = explode( $separator, $row );
+			foreach( $columns as $column )
+				$Line->addColumn( $column );
+		}
+
+		return $this;
+	}
+
+
+	private function encodeCSV( $separator=null, $rowSeparator=null ) {
+		if( $separator === null )
+			$separator = $this->columnSeparator;
+		if( $rowSeparator === null )
+			$rowSeparator = $this->rowSeparator;
+
+		$source = '';
+		foreach( $this->data as $row ) {
+			$columns = array();
+			foreach( $row as $column )
+				$columns[] = $this->escape( $column );
+			$source .= implode( $separator, $columns );
+			$source .= $rowSeparator;
+		}
+		return trim($source);
+	}
+
+
+	public function export( $separator=null, $rowSeparator=null ) {
+		return $this->encodeCSV( $separator, $rowSeparator );
+	}
+
+
+	protected static function detectSeparator( $line ) {
+		$separator = '';
+		$separatorOccurs = 0;
+		foreach( self::$possibleSeparators as $sep ) {
+			$occurs = substr_count( $line, $sep );
+			if( $occurs > $separatorOccurs ) {
+				$separator = $sep;
+				$separatorOccurs = $occurs;
+			}
+		}
+		return $separator;
+	}
+
+
+	public function addRow( $array=null ) {
+		$index = count( $this->data );
+		if( $array === null ) {
+			$this->data[ $index ] = array();
+			return new rsCSVRow( $this, $index );
+		}
+		$this->data[ $index ] = $array;
+		return $this;
+	}
+
+
+	public function addColumn( $rowIndex, $value ) {
+		$value = $this->unescape( $value );
+		$this->data[ $rowIndex ][] = $value;
+		return $this;
+	}
+
+
+	public function escape( $value ) {
+		$escapeChar = self::$escapeChar;
+		if( substr_count( $value, $escapeChar ) > 0 || substr_count( $value, $this->columnSeparator ) > 0 ) {
+			$escapedValue = str_replace( $escapeChar, $escapeChar.$escapeChar, $value );
+			$value = $escapeChar . $escapedValue . $escapeChar;
+		}
+		return $value;
+	}
+
+
+	public function unescape( $value ) {
+		$escapeChar = self::$escapeChar;
+		if( substr( $value, 0, 1 ) == $escapeChar && substr( $value, -1, 1 ) == $escapeChar ) {
+			$containingValue = substr( $value, 1, -1 );
+			$value = str_replace( $escapeChar.$escapeChar, $escapeChar, $containingValue );
+		}
+		return $value;
+	}
+
+
+}
+
+
+
+
+class rsCSVRow {
+
+
+	protected $parent = null;
+	protected $index;
+
+
+	public function __construct( rsCSV $parent, $index ) {
+		$this->parent = $parent;
+		$this->index = $index;
+	}
+
+
+	public function addColumn( $column ) {
+		$this->parent->addColumn( $this->index, $column );
+		return $this;
+	}
+
+
+}

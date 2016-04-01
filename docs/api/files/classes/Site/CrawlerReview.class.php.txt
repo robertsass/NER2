@@ -1,0 +1,162 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Site;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface CrawlerReviewInterface {
+
+	static function add( CrawlerMovie $Movie, CrawlerReviewSearch $ReviewSearch );
+
+	static function getByMovie( CrawlerMovie $Movie );
+	static function getByReviewSearch( CrawlerReviewSearch $ReviewSearch );
+	static function getByReview( Review $Review );
+	static function getUnexamined();
+
+	function getMovie();
+
+	function remove();
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class CrawlerReview extends \rsCore\DatabaseDatasetAbstract implements CrawlerReviewInterface, \rsCore\CoreFrameworkInitializable {
+
+
+	protected static $_databaseTable = 'crawler-reviews';
+
+
+/* CoreFrameworkInitializable methods */
+
+	/** Wird beim Autoloading dieser Klasse aufgerufen, um diese Klasse als DatabaseDatasetHandler zu registrieren
+	 * @internal
+	 */
+	public static function frameworkRegistration() {
+		\rsCore\Core::core()->registerDatabaseDatasetHandler( static::getDatabaseConnection(), '\\'. __CLASS__ );
+	}
+
+
+/* Static methods */
+
+	/** Findet einen Datensatz anhand des Titels und der URL oder legt ihn an
+	 * @param CrawlerMovie $Movie
+	 * @param CrawlerReviewSearch $ReviewSearch
+	 * @return CrawlerReview
+	 * @api
+	 */
+	public static function add( CrawlerMovie $Movie, CrawlerReviewSearch $ReviewSearch ) {
+		$Dataset = self::getByColumns( array(
+			'movieId' => $Movie->getPrimaryKeyValue(),
+			'reviewSearchId' => $ReviewSearch->getPrimaryKeyValue()
+		), false );
+		if( !$Dataset ) {
+			$Dataset = self::create();
+			if( $Dataset ) {
+				$Dataset->movieId = $Movie->getPrimaryKeyValue();
+				$Dataset->reviewSearchId = $ReviewSearch->getPrimaryKeyValue();
+				$Dataset->adopt();
+			}
+		}
+		return $Dataset;
+	}
+
+
+	/** Findet Datensätze anhand eines Movie
+	 * @param CrawlerMovie $Movie
+	 * @return array Array von CrawlerReview-Instanzen
+	 * @api
+	 */
+	public static function getByMovie( CrawlerMovie $Movie ) {
+		return self::getByColumns( array(
+			'movieId' => $Movie->getPrimaryKeyValue()
+		), true );
+	}
+
+
+	/** Findet einen Datensatz anhand eines ReviewSearch
+	 * @param CrawlerReviewSearch $ReviewSearch
+	 * @return CrawlerReview
+	 * @api
+	 */
+	public static function getByReviewSearch( CrawlerReviewSearch $ReviewSearch ) {
+		return self::getByColumns( array(
+			'reviewSearchId' => $ReviewSearch->getPrimaryKeyValue()
+		), false );
+	}
+
+
+	/** Findet einen Datensatz anhand eines Review
+	 * @param Review $Review
+	 * @return CrawlerReview
+	 * @api
+	 */
+	public static function getByReview( Review $Review ) {
+		return self::getByColumns( array(
+			'reviewId' => $Review->getPrimaryKeyValue()
+		), false );
+	}
+
+
+	/** Findet eine Review, die noch nicht bearbeitet wurde
+	 * @param int $limited
+	 * @return CrawlerReview
+	 * @api
+	 */
+	public static function getUnexamined( $limited=true ) {
+		return self::getByColumns( array(
+			'reviewId' => '0'
+		), $limited ? false : true );
+	}
+
+
+/* Public methods */
+
+	/** Gibt das zugehörige Movie zurück
+	 * @return CrawlerMovie
+	 * @api
+	 */
+	public function getMovie() {
+		return CrawlerMovie::getById( $this->movieId );
+	}
+
+
+	/** Gibt das zugehörige ReviewSearch zurück
+	 * @return CrawlerReviewSearch
+	 * @api
+	 */
+	public function getReviewSearch() {
+		return CrawlerReviewSearch::getById( $this->reviewSearchId );
+	}
+
+
+/* Filter */
+
+	protected function encodeTitle( $value ) {
+		return trim( html_entity_decode( strip_tags( $value ) ) );
+	}
+
+
+	protected function encodeText( $value ) {
+		foreach( array('p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6') as $closingTag )
+			$value = str_replace( '</'. $closingTag .'>', "</". $closingTag .">\n\n", $value );
+		$value = str_replace( '<br', "\n<br", $value );
+		$this->plainText = \rsCore\StringUtils::getPlainText( $value );
+		return $value;
+	}
+
+
+}

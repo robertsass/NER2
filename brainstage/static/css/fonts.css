@@ -1,0 +1,6 @@
+@import url(../fonts/arrows/flaticon.css);
+@import url(../fonts/closer/flaticon.css);
+
+[class^="flaticon-"]:before, [class*=" flaticon-"]:before, [class^="flaticon-"]:after, [class*=" flaticon-"]:after {
+    font-family: Flaticon;
+}

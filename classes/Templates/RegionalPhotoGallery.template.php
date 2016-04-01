@@ -1,0 +1,170 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Templates;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface RegionalPhotoGalleryInterface {
+
+	public static function buildAlbumGallery( Base $Template, \rsCore\Container $Container );
+	public static function buildPhotoGallery( Base $Template, \rsCore\Container $Container );
+
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends Base
+ */
+class RegionalPhotoGallery extends Base implements RegionalPhotoGalleryInterface {
+
+
+	const ALBUMCOVER_RESOLUTION = 400;
+	const ALBUMCOVER_RESOLUTION_RETINA = 800;
+	const THUMBNAIL_RESOLUTION = 300;
+	const THUMBNAIL_RESOLUTION_RETINA = 600;
+	const MINI_THUMBNAIL_RESOLUTION = 150;
+	const MINI_THUMBNAIL_RESOLUTION_RETINA = 300;
+	const ONEPAGE_PHOTOS = 12;
+
+
+	/** Dient als Konstruktor
+	 *
+	 * @access public
+	 * @return void
+	 */
+	public function init() {
+		parent::init();
+
+		$this->hook( 'extendContentArea' );
+		$this->hook( 'extendOnepage' );
+	}
+
+
+	/** Hook zum Erweitern des Contents
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function extendContentArea( \rsCore\Container $Container ) {
+		if( getVar('a') )
+			return self::buildPhotoGallery( $this, $Container );
+		return self::buildAlbumGallery( $this, $Container );
+	}
+
+
+	/** Hook zum Erweitern der Homepage durch eine Onepage-Sektion
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return void
+	 */
+	public function extendOnepage( \rsCore\Container $Container ) {
+		$this->buildOnepageSection( $Container );
+	}
+
+
+	/** Baut die Onepage-Sektion
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return \rsCore\Container $Container
+	 */
+	public function buildOnepageSection( \rsCore\Container $Container ) {
+		$link = $this->getDocument()->getComposedUrl();
+		$Container->subordinate( 'h2 > a', array('href' => $link), t("Photos") );
+		$Container = $Container->subordinate( 'div.photo-galery > div.row' );
+		$photos = $this->getSite()->getPhotos( self::ONEPAGE_PHOTOS );
+		if( is_array( $photos ) ) {
+			foreach( $photos as $File ) {
+				if( !$File )
+					continue;
+				$ThumbContainer = $Container->subordinate( 'div.photo.col-md-2 > div.thumbnail > div.image > a', array(
+					'href' => $File->getURL(false, 1600),
+					'data-anchor' => $File->getPrimaryKeyValue()
+				) );
+				$ThumbContainer->subordinate( 'img', array(
+					'src' => '/static/images/pixel.gif',
+					'data-src' => $File->getURL(false, self::MINI_THUMBNAIL_RESOLUTION),
+					'data-src-retina' => $File->getURL(false, self::MINI_THUMBNAIL_RESOLUTION_RETINA)
+				) );
+			}
+		}
+		return $Container;
+	}
+
+
+	/** Baut die Foto-Gallerie
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return \rsCore\Container $Container
+	 */
+	public static function buildAlbumGallery( Base $Template, \rsCore\Container $Container ) {
+		$Container->subordinate( 'h1', t("Photo albums") );
+		$Container = $Container->subordinate( 'div.photo-galery > div.row' );
+		$albums = $Template->getCity()->getAlbums();
+		if( is_array( $albums ) ) {
+			foreach( $albums as $Album ) {
+				$AlbumThumb = $Album->getRandomPhoto()->getFile();
+				$link = './?'. \rsCore\RequestPath::joinParameters( array_merge( rsCore()->getGlobalVariable( 'GET' ), array('a' => $Album->getPrimaryKeyValue()) ) );
+				$AlbumContainer = $Container->subordinate( 'div.album.col-md-4 > div.thumbnail > a', array('href' => $link) );
+				$AlbumContainer->subordinate( 'div.image > img', array(
+					'src' => '/static/images/pixel.gif',
+					'data-src' => $AlbumThumb->getURL(false, self::ALBUMCOVER_RESOLUTION),
+					'data-src-retina' => $AlbumThumb->getURL(false, self::ALBUMCOVER_RESOLUTION_RETINA)
+				) );
+				$AlbumContainer->subordinate( 'div.caption', $Album->getTitle() );
+			}
+		}
+		return $Container;
+	}
+
+
+	/** Baut die Foto-Gallerie
+	 *
+	 * @access public
+	 * @param \rsCore\Container $Container
+	 * @return \rsCore\Container $Container
+	 */
+	public static function buildPhotoGallery( Base $Template, \rsCore\Container $Container ) {
+		$link = './?d='. getVar('d');
+		$Container->subordinate( 'a.btn.btn-primary', array('href' => $link) )->subordinate( 'span.glyphicon glyphicon-menu-left' )->append( t("Photo albums") );
+		$Container = $Container->subordinate( 'div.photo-galery' );
+		$Album = \Nightfever\PhotoAlbum::getAlbumById( getVar('a') );
+		$Container->subordinate( 'h1.title', $Album->getTitle() );
+		$Container->subordinate( 'div.description', $Album->getDescription() );
+		$photos = $Album->getFiles();
+		if( is_array( $photos ) ) {
+			$Container = $Container->subordinate( 'div.row' );
+			foreach( $photos as $File ) {
+				$ThumbContainer = $Container->subordinate( 'div.photo.col-md-3 > div.thumbnail > div.image > a', array(
+					'href' => $File->getURL(false, 1600),
+					'data-anchor' => $File->getPrimaryKeyValue()
+				) );
+				$ThumbContainer->subordinate( 'img', array(
+					'src' => '/static/images/pixel.gif',
+					'data-src' => $File->getURL(false, self::THUMBNAIL_RESOLUTION),
+					'data-src-retina' => $File->getURL(false, self::THUMBNAIL_RESOLUTION_RETINA)
+				) );
+			}
+		}
+		return $Container;
+	}
+
+
+}

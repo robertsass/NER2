@@ -1,0 +1,42 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Brainstage;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface PluginInterface {
+
+	static function translate( $string, $comment="" );
+	static function t( $translationString, $comment="" );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class Plugin extends \rsCore\Plugin implements PluginInterface {
+
+
+	/** Übersetzt einen String in die gerade verwendete Sprache; hierzu wird jedoch das Brainstage-interne Wörterbuch herangezogen
+	 * @param string $string Übersetzungsschlüssel
+	 * @param string $comment
+	 * @return string
+	 */
+	public static function translate( $string, $comment="" ) {
+		return Brainstage::translate( $string, $comment );
+	}
+
+
+}

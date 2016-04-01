@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>insights.js demo</title>
+    <link rel="stylesheet" href="insights.standalone.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <div id="loader"><img src="spinner.gif" /></div>
+    <div id="visualization"></div>
+
+	<div id="filter">
+		<ul>
+			<li data-filterkey="0" class="hidden">
+				<div class="filter-name">SID / Client</div>
+				<div class="filter-value">ECC 800</div>
+			</li>
+			<li data-filterkey="KOKRS" class="hidden">
+				<div class="filter-name">Kostenrechnungskreise</div>
+				<div class="filter-value">53</div>
+			</li>
+			<li data-filterkey="BUKRS" class="hidden">
+				<div class="filter-name">Buchungskreise</div>
+				<div class="filter-value">146</div>
+			</li>
+			<li data-filterkey="WERKS" class="hidden">
+				<div class="filter-name">Werke</div>
+				<div class="filter-value">187</div>
+			</li>
+		</ul>
+	</div>
+
+	<div id="detailPopup">
+		<div class="shortDetails">
+			<button class="showDetailsButton" type="button">Show Details</button>
+			<button class="hideDetailsButton" type="button">Hide Details</button>
+			<h1>Title</h1>
+			<div><span class="label">Parent:</span><span class="value"></span></div>
+			<div><span class="label">Children:</span><span class="value"></span></div>
+		</div>
+		<div class="fullDetails">
+			<div id="subtree"></div>
+		</div>
+	</div>
+
+
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="../extensions.js"></script>
+	<script src="insights.standalone.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="tree.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+  </body>
+</html>

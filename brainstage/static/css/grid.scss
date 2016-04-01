@@ -1,0 +1,47 @@
+$rowWidth: 100%;
+
+@mixin grid($numberColumns) {
+	@for $i from 1 through $numberColumns {
+		$left: $numberColumns - $i;
+		$selector: ".col#{$i}, .col-#{$left}";
+		$bool: $i > $numberColumns/2;
+		@if $bool {
+			$colWidth: $rowWidth / ($numberColumns / $i);
+		}
+		@else {
+			$colWidth: $rowWidth - ($rowWidth / ($numberColumns / $left));
+		}
+		
+		#{$selector} {
+			width: $colWidth;
+			position: relative;
+			display: inline-block;
+			float: left;
+			margin: 0;
+			height: 100%;
+		}
+	}
+}
+
+
+.row {
+	display: block;
+	clear: both;
+}
+
+
+@media (max-width: 800px) {
+	@include grid(8);
+}
+
+@media (min-width: 801px) and (max-width: 1200px) {
+	@include grid(12);
+}
+
+@media (min-width: 1101px) and (max-width: 1400px) {
+	@include grid(16);
+}
+
+@media (min-width: 1401px) {
+	@include grid(20);
+}

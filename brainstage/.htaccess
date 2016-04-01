@@ -1,0 +1,28 @@
+<files .htaccess>
+	order allow,deny
+	deny from all
+</files>
+
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond $1 !^(index\.php|robots\.txt)
+	RewriteRule ^(.*)$ index.php?/$1 [L]
+</IfModule>
+
+<IfModule pagespeed_module>
+	ModPagespeed Off
+</IfModule>
+
+<IfModule mod_php5.c>
+	php_value upload_max_filesize 20M
+	php_value post_max_size 22M
+</IfModule>
+
+<IfModule mod_xsendfile.c>
+#	XSendFile On
+#	XSendFileAllowAbove On
+</IfModule>

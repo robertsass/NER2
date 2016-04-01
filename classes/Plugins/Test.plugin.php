@@ -1,0 +1,417 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Plugins;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface TestInterface {
+}
+
+
+/** TestPlugin
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends \rsCore\Plugin
+ */
+class Test extends \rsCore\Plugin implements TestInterface {
+
+
+	/** Wird vom Frontend-Template aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function templateRegistration( \rsCore\FrameworkInterface $Framework ) {
+	}
+
+
+	/** Wird von Brainstage aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function brainstageRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'buildHead' );
+		$Framework->registerHook( $Plugin, 'buildBody' );
+		$Framework->registerHook( $Plugin, 'getNavigatorItem' );
+	}
+
+
+	/** Wird von der API aufgerufen, damit sich das Plugin für Hooks registrieren kann
+	 *
+	 * @param \rsCore\FrameworkInterface $Framework
+	 */
+	public static function apiRegistration( \rsCore\FrameworkInterface $Framework ) {
+		$Plugin = self::instance();
+		$Framework->registerHook( $Plugin, 'import_events', 'importEvents' );
+		$Framework->registerHook( $Plugin, 'import_quotes', 'importQuotes' );
+		$Framework->registerHook( $Plugin, 'setup_cities', 'setupCitySites' );
+		$Framework->registerHook( $Plugin, 'import_photos', 'importPhotos' );
+		$Framework->registerHook( $Plugin, 'list_imported_photos', 'listImportedPhotos' );
+	}
+
+
+	/** Dient als Konstruktor-Erweiterung
+	 */
+	protected function init() {
+	#	echo "I'm alive :)";
+	}
+
+
+/* Brainstage Plugin */
+
+	/** Ergänzt den Navigator
+	 * @return string
+	 */
+	public function getNavigatorItem() {
+		return "Testplugin";
+	}
+
+
+	/** Ergänzt den Header
+	 * @param \rsCore\ProtectivePageHead $Head
+	 */
+	public function buildHead( \rsCore\ProtectivePageHead $Head ) {
+	}
+
+
+	/** Ergänzt den MainContent
+	 * @param \rsCore\Container $Container
+	 */
+	public function buildBody( \rsCore\Container $Container ) {
+		$Container->addAttribute( 'class', 'colset' );
+		$DocumentsBrowser = $Container->subordinate( 'h1', "Testplugin" );
+	}
+
+
+	/** Ergänzt den Brainstage-internen Blog
+	 * @param \rsCore\Container $Container
+	 */
+	public function extendBrainstageBlog( \rsCore\Container $Container ) {
+		$Container->subordinate( 'h1', "EXTENDED" );
+	}
+
+
+/* API Plugin */
+
+	/** Importiert die Events der alten Tabelle in die neue Struktur
+	 * @return boolean
+	 */
+	public function importEvents() {
+		if( !isLoggedin() )
+			return null;
+
+		$OldDatabase = \rsCore\Database::table( 'brainfever_dates', false );
+		$success = true;
+		$failures = 0;
+		foreach( $OldDatabase->getAll() as $Dataset ) {
+			if( $Dataset->city_id == 0 ) {
+				$Site = \Nightfever\Country::getCountryById( 76 ); // Specials -> Deutschland
+			}
+			else {
+				$OldCity = \rsCore\Database::table( 'brainfever_cities', false )->getByColumn( 'id', $Dataset->city_id );
+				$language = $OldCity ? ($OldCity->country == 'ch' ? 'de' : ($OldCity->country == 'at' ? 'de' : $OldCity->country)) : null;
+				$Country = \Nightfever\Sites::getSiteByShortname( $OldCity->country );
+				if( !$Country )
+					var_dump($OldCity);
+				$Country = \Nightfever\Country::getCountryById( $Country->getPrimaryKeyValue() );
+
+				$cities = \Nightfever\City::getCitiesByName( $OldCity->city );
+				$City = current( $cities );
+				if( !$City ) {
+					$City = $Country->addCity( $OldCity->city );
+
+					if( $City ) {
+						$Document = $City->getDocument();
+						if( $Document ) {
+							$DocumentVersion = $Document->newVersion( $language );
+							$DocumentVersion->name = trim( $OldCity->city );
+							$DocumentVersion->adopt();
+						}
+
+						$groupName = ucfirst( $City->role ) .': '. $City->name;
+						$Group = \Brainstage\Group::getGroupByName( $groupName );
+						if( !$Group )
+							$Group = \Brainstage\Group::addGroup( $groupName, false );
+						if( $Group ) {
+							\Brainstage\GroupRight::addRight( 'Plugins/Sites:sites', $City->getPrimaryKeyValue(), $Group, false );
+							\Brainstage\GroupRight::addRight( 'Brainstage/Plugins/Documents:roots', $City->documentId, $Group, false );
+						}
+					}
+
+				}
+				if( !$City ) {
+					$failures++;
+				} else {
+					$City->shortname = $OldCity->subdomain;
+					$City->adopt();
+
+					$Site = $City;
+
+					$Location = \Nightfever\Location::getLocation( $Site, $Dataset->kirche, true );
+					$Location->address = $Dataset->adresse;
+					$Location->lat = $OldCity->lat;
+					$Location->long = $OldCity->long;
+					$Location->adopt();
+				}
+			}
+
+			$language = $OldCity ? $OldCity->country : null;
+			if( $language == 'ch' )	$language = 'de';
+			if( $language == 'at' )	$language = 'de';
+			if( $language == 'dk' )	$language = 'da';
+			if( $language == 'ie' )	$language = 'en';
+			if( $language == 'us' )	$language = 'en';
+			if( $language == 'br' )	$language = 'es';
+			if( $language == 'mx' )	$language = 'es';
+			if( $language == 'be' )	$language = 'fr';
+			if( $language == 'ca' )	$language = 'en';
+
+			$Event = \Nightfever\Event::addEvent( $Site );
+			$Event->locationId = $Location->getPrimaryKeyValue();
+#			$Event->title = $Dataset->titel;
+			$Event->start = \DateTime::createFromFormat( 'Y-m-d H:i:s', date( 'Y-m-d H:i:s', $Dataset->start_time ) );
+			$Event->end = \DateTime::createFromFormat( 'Y-m-d H:i:s', date( 'Y-m-d H:i:s', $Dataset->end_time ) );
+#			$Event->description = $Dataset->programm;
+			$EventMeta = $Event->getMeta( $language );
+			$EventMeta->title = $Dataset->titel;
+			$EventMeta->description = $Dataset->programm;
+
+			$success = $success && $Event->adopt();
+		}
+		return $success ? $success : $failures;
+	}
+
+
+	/** Importiert die Zitate der alten Tabelle in die neue Struktur
+	 * @return boolean
+	 */
+	public function importQuotes() {
+		if( !isLoggedin() )
+			return null;
+
+		$OldDatabase = \rsCore\Database::table( 'brainfever_quotes', false );
+		$success = true;
+		$failures = 0;
+		foreach( $OldDatabase->getAll() as $Dataset ) {
+			$OldCity = \rsCore\Database::table( 'brainfever_cities', false )->getByColumn( 'id', $Dataset->city_id );
+			$language = $OldCity ? ($OldCity->country == 'ch' ? 'de' : ($OldCity->country == 'at' ? 'de' : $OldCity->country)) : null;
+
+			$Country = \Nightfever\Sites::getSiteByShortname( $OldCity->country );
+			$Country = \Nightfever\Country::getCountryById( $Country->getPrimaryKeyValue() );
+
+			$cities = \Nightfever\City::getCitiesByName( $OldCity->city );
+			$City = current( $cities );
+			if( $City ) {
+				$Quote = \Nightfever\Quote::addQuote( $City, $language );
+				$Quote->author = $Dataset->autor;
+				$Quote->age = $Dataset->alter;
+				$Quote->text = $Dataset->text;
+				$Quote->date = intval( $Dataset->timestamp );
+				$Quote->marked = $Dataset->hp_allowed > 0 ? 'true' : 'false';
+				if( !$Quote->adopt() )
+					$failures++;
+			}
+		}
+		return $success ? $success : $failures;
+	}
+
+
+	/** Initialisiert die Städte-Seiten mit Standard-Struktur
+	 * @return boolean
+	 */
+	public function setupCitySites() {
+		if( !isLoggedin() )
+			return null;
+
+		$children = array(
+			'Events'		=> 'RegionalEvents',
+			'Photos'		=> 'RegionalPhotoGallery',
+			'Quotes'		=> 'RegionalQuotes',
+			'Location'	=> 'RegionalLocation',
+			'Links'		=> 'RegionalLinks',
+			'Contact'	=> 'RegionalContactform'
+		);
+
+		$result = array();
+		foreach( \Nightfever\Sites::getCities() as $City ) {
+			$CityRootDocument = $City->getDocument();
+			$Country = $City->getCountry();
+			$languages = $Country->getLanguages();
+
+			// Children anlegen
+			foreach( $children as $name => $template ) {
+				$Child = $CityRootDocument->createChild();
+				if( $Child ) {
+					$Child->templateName = $template;
+					$Child->accessibility = "public";
+					foreach( $languages as $Language ) {
+						$Dictionary = new \rsCore\Dictionary( $Language );
+						$Version = $Child->newVersion( $Language->shortCode );
+						if( $Version ) {
+							$Version->name = $Dictionary->get( $name )->translation;
+							$Version->adopt();
+
+							$result[ $Country->name ][ $Language->shortCode ][ $Version->name ] = $template;
+						}
+					}
+					$Child->adopt();
+				}
+			}
+		}
+		return $result;
+	}
+
+
+	/** Importiert die Fotos aus dem alten Dateisystem und legt Referenzen in der Datenbank an
+	 * @return boolean
+	 */
+	public function importPhotos() {
+#		if( !isLoggedin() )
+#			return null;
+
+		// Home-Verzeichnisse der Städte finden
+		$siteDirs = array();
+		$baseDir = 'OLD/media/';
+		foreach( scandir( $baseDir ) as $item ) {
+			$itemPath = $baseDir .'/'. $item;
+			if( $item != '.' && $item != '..' && is_dir( $itemPath ) )
+				$siteDirs[] = $itemPath;
+		}
+
+		$FileManager = \rsCore\FileManager::instance();
+
+		$result = array();
+		foreach( $siteDirs as $siteDir ) {
+			$cityName = array_pop( explode( '/', $siteDir ) );
+			$Site = \Nightfever\Sites::getSiteByShortname( $cityName );
+			if( !$Site ) {
+				$cityName = explode( '-', $cityName );
+				array_pop( $cityName );
+				$cityName = join( '-', $cityName );
+				$Site = \Nightfever\Sites::getSiteByShortname( $cityName );
+			}
+			if( !$Site )
+				continue;
+			$existingAlbums = \Nightfever\PhotoAlbum::getAlbumsBySite( $Site );
+			if( is_array( $existingAlbums ) && !empty( $existingAlbums ) )
+				continue;
+			if( is_file( 'uploads/photo-import/'. $cityName .'.txt' ) )
+				continue;
+
+			$OldCity = \rsCore\Database::table( 'brainfever_cities', false )->getByColumn( 'subdomain', $cityName );
+			if( !$OldCity )
+				continue;
+			$result[ $cityName ] = array_merge( $result[ $cityName ], $OldCity->getColumns() );
+			$cityId = $OldCity->id;
+			$language = $OldCity ? $OldCity->country : null;
+			if( $language == 'ch' )	$language = 'de';
+			if( $language == 'at' )	$language = 'de';
+			if( $language == 'dk' )	$language = 'da';
+			if( $language == 'ie' )	$language = 'en';
+			if( $language == 'us' )	$language = 'en';
+			if( $language == 'br' )	$language = 'es';
+			if( $language == 'mx' )	$language = 'es';
+			if( $language == 'be' )	$language = 'fr';
+			if( $language == 'ca' )	$language = 'en';
+			$Language = \Brainstage\Language::getLanguageByShortCode( $language );
+
+			$result[ $cityName ]['city'] = $OldCity->getColumns();
+
+			$existingAlbumsCount = 0;
+
+			// Foto-Alben finden
+			$galeryDir = $siteDir .'/galery/';
+			foreach( scandir( $galeryDir ) as $year ) {
+				if( substr( $year, 0, 1 ) == '.' )
+					continue;
+
+				$yearDir = $galeryDir .'/'. $year;
+				foreach( scandir( $yearDir ) as $albumName ) {
+					$albumDir = $yearDir .'/'. $albumName;
+					if( !is_dir( $albumDir ) || substr( $albumName, 0, 1 ) == '.' || $albumName == 'thumbs' )
+						continue;
+					$containingFiles = array();
+					foreach( scandir( $albumDir ) as $file ) {
+						$file = $albumDir .'/'. $file;
+						if( is_file( $file ) )
+							$containingFiles[] = $file;
+					}
+					if( empty( $containingFiles ) )
+						continue;
+
+					$existingAlbumsCount++;
+					$result[ $cityName ]['albums'][ $year ][ $albumName ] = array();
+
+					// Meta-Daten je Fotoalbum aus der alten Datenbank holen
+					$OldDatabase = \rsCore\Database::table( 'brainfever_albums', false );
+					$Meta = $OldDatabase->getByColumns( array('city_id' => $cityId, 'name' => $albumName) );
+
+					// Album anlegen
+					$Album = \Nightfever\PhotoAlbum::createAlbum( $Site );
+					if( !$Album )
+						continue;
+					$Album->date = \DateTime::createFromFormat( 'Y', date( 'Y', $year ) );
+					$AlbumMeta = $Album->getMeta( $Language );
+					if( !$AlbumMeta )
+						continue;
+					if( $Meta ) {
+						$AlbumMeta->title = $Meta->name;
+						$AlbumMeta->description = $Meta->text;
+					} else {
+						$AlbumMeta->title = $albumName;
+					}
+					$AlbumMeta->adopt();
+					$Album->adopt();
+					$result[ $cityName ]['albums'][ $year ][ $albumName ] = $Album->getColumns();
+
+					// Fotos iterieren
+					foreach( $containingFiles as $file ) {
+						// Datei hochladen/kopieren
+						$_FILES = array( array('name' => basename( $file ), 'tmp_name' => $file) );
+						$uploadedFiles = $FileManager->handleUploads();
+						// Datei dem Album hinzufügen
+						if( is_array( $uploadedFiles ) && !empty( $uploadedFiles ) ) {
+							foreach( $uploadedFiles as $UploadedFile ) {
+								$Photo = $Album->addPhoto( $UploadedFile );
+								if( $Photo )
+									$result[ $cityName ]['albums'][ $year ][ $albumName ]['importedPhotos']++;
+							}
+						}
+					}
+
+					$result[ $cityName ]['importedAlbums']++;
+					$result[ $cityName ]['albums'][ $year ][ $albumName ]['existingPhotos'] = count( $containingFiles );
+				}
+			}
+			$result[ $cityName ]['existingAlbums'] = $existingAlbumsCount;
+
+			file_put_contents( 'uploads/photo-import/'. $cityName .'.txt', json_encode( $result ) );
+
+			// halt Iteration over Sites, continue next run
+			break;
+		}
+		return $result;
+	}
+
+
+	/** Importiert die Fotos aus dem alten Dateisystem und legt Referenzen in der Datenbank an
+	 * @return boolean
+	 */
+	public function listImportedPhotos() {
+		return scandir( 'uploads/photo-import/' );
+	}
+
+
+}

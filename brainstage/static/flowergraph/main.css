@@ -1,0 +1,201 @@
+body,
+#visualization svg {
+	margin: 0;
+	overflow: hidden;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	border-top: 1px solid #aaa;
+	background: #ddd fixed center center no-repeat;
+	background: -webkit-radial-gradient(#fff, #ccc); /* Safari 5.1 to 6.0 */
+	background: -o-radial-gradient(#fff, #ccc)); /* For Opera 11.6 to 12.0 */
+	background: -moz-radial-gradient(#fff, #ccc)); /* For Firefox 3.6 to 15 */
+	background: radial-gradient(#fff, #ccc)); /* Standard syntax */
+}
+
+#loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+#loader img {
+	display: inline-block;
+	margin-left: -50%;
+	margin-top: -50%;
+    height: 70px;
+    width: 70px;
+    border-radius: 100%;
+    box-shadow: 0px 0px 10px #fff;
+}
+
+#visualization {
+	display: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+
+#filter {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: auto;
+	bottom: auto;
+	height: auto;
+	width: auto;
+	padding: 22px;
+}
+
+#filter ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+#filter ul li {
+	margin: 20px 0;
+	padding: 5px 10px;
+	background: #fff;
+	border-left: 10px solid #fff;
+}
+
+#filter ul li.hidden {
+	display: none;
+}
+
+#filter ul li.inactive {
+	opacity: 0.4;
+}
+
+#filter ul li .filter-name {
+	font-size: 12px;
+}
+
+#filter ul li .filter-value {
+	font-size: 24px;
+}
+
+#filter ul li:first-child {
+	border-color: #647A87;
+}
+
+#filter ul li:nth-child(2) {
+	border-color: #24B9E4;
+}
+
+#filter ul li:nth-child(3) {
+	border-color: #36C08F;
+}
+
+#filter ul li:nth-child(4) {
+	border-color: #DDD14D;
+}
+
+#detailPopup {
+	display: none;
+	position: absolute;
+	top: auto;
+	left: 22px;
+	right: 22px;
+	bottom: 22px;
+	width: auto;
+	height: auto;
+	max-height: 635px;
+	overflow: hidden;
+	padding: 10px 20px;
+	background: #fff;
+	border-left: 10px solid #fff;
+	border-color: #647A87;
+}
+
+#detailPopup[data-cluster="KOKRS"] {
+	border-color: #24B9E4;
+}
+
+#detailPopup[data-cluster="BUKRS"] {
+	border-color: #36C08F;
+}
+
+#detailPopup[data-cluster="WERKS"] {
+	border-color: #DDD14D;
+}
+
+#detailPopup .showDetailsButton,
+#detailPopup .hideDetailsButton {
+	float: right;
+	display: none;
+}
+
+#detailPopup .showDetailsButton {
+	display: inline;
+}
+
+#detailPopup h1 {
+	margin-top: 0;
+	padding-top: 0;
+}
+
+#detailPopup .shortDetails {
+	height: 100px;
+}
+
+#detailPopup .fullDetails {
+	display: none;
+	height: 535px;
+}
+
+#detailPopup .fullDetails #subtree {
+	height: 100%;
+	max-height: 100%;
+}
+
+#detailPopup .fullDetails #subtree svg {
+	padding-left: 200px;
+}
+
+#detailPopup .fullDetails #subtree .node {
+	cursor: pointer;
+}
+
+#detailPopup .fullDetails #subtree .overlay{
+}
+
+#detailPopup .fullDetails #subtree .node circle {
+	fill: #fff;
+	stroke: steelblue;
+	stroke-width: 1.5px;
+}
+
+#detailPopup .fullDetails #subtree .node text {
+	font-size: 12px;
+}
+
+#detailPopup .fullDetails #subtree .link {
+	fill: none;
+	stroke: #ccc;
+	stroke-width: 1.5px;
+}
+
+#detailPopup .fullDetails #subtree .templink {
+	fill: none;
+	stroke: red;
+	stroke-width: 3px;
+}
+
+#detailPopup .fullDetails #subtree .ghostCircle.show{
+	display: block;
+}
+
+#detailPopup .fullDetails #subtree .ghostCircle, .activeDrag .ghostCircle{
+	display: none;
+}

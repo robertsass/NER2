@@ -1,0 +1,14 @@
+#Plugins_Assistant form .toolbar.row > div:last-child {
+  text-align: right; }
+
+#Plugins_Assistant form .plaintext {
+  font-size: 150%;
+  line-height: 2em; }
+
+#Plugins_Assistant form.discarding .panel {
+  border-color: #ff0000;
+  border-width: 2px; }
+
+#Plugins_Assistant form.accepting .panel {
+  border-color: #00d333;
+  border-width: 2px; }

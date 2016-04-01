@@ -1,0 +1,82 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class HTTPConnector {
+
+
+	public static function getRemoteData( $remotePath, $use_socket=false ) {
+		if( !$use_socket && ini_get('allow_url_fopen') && @file_get_contents( 'http://'. $_SERVER['SERVER_NAME'] ) != false ) {
+			$data = file_get_contents( $remotePath );
+			if( $data === false )
+				return self::getRemoteData( $remotePath, true );
+		}
+		elseif( !$use_socket && function_exists('curl_init') ) {
+			$ch = curl_init();
+			curl_setopt( $ch, CURLOPT_URL, $remotePath );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			$data = curl_exec( $ch );
+			curl_close( $ch );
+		}
+		else {
+			$url = parse_url( $remotePath );
+			$socket = fsockopen( $url['host'], 80 );
+			if ($socket) {
+				$out = "GET /". $url['path'] .'?'. $url['query'] ." HTTP/1.1\r\n";
+				$out .= "Host: ". $url['host'] ."\r\n";
+				$out .= "Accept: text/html, application/xml, application/xhtml+xml, text/plain\r\n";
+				$out .= "Accept-Encoding: deflate\r\n";
+				$out .= "Accept-Charset: utf-8\r\n";
+				$out .= "Connection: Close\r\n\r\n";
+				fwrite( $socket, $out );
+				$data = stream_get_contents( $socket );
+				fclose( $socket );
+				$data = explode( "\r\n\r\n", $data, 2 );
+				if( count( $data ) == 1 )
+					$data = explode( "\n\n", $data[0], 2 );
+				$headers = $data[0];
+				$data = $data[1];
+				if( substr_count( $headers, 'chunked' ) > 0 )
+					$data = self::unchunk( $data );
+			}
+		}
+		return $data;
+	}
+
+
+	protected static function unchunk( $str ) {
+		if( !is_string( $str ) || strlen( $str ) < 1)
+			return false;
+		$eol = "\n";
+		$add = strlen( $eol );
+		$tmp = $str;
+		$str = '';
+		do {
+			$tmp = ltrim( $tmp );
+			$pos = strpos( $tmp, $eol );
+			if( $pos === false )
+				return false;
+			$len = hexdec( substr( $tmp, 0, $pos ) );
+			if( !is_numeric( $len ) or $len < 0 )
+				return false;
+			$str .= substr( $tmp, ($pos + $add), $len );
+			$tmp  = substr( $tmp, ($len + $pos + $add) );
+			$check = trim( $tmp );
+		} while( !empty( $check ) );
+		unset( $tmp );
+		return $str;
+	}
+
+
+}

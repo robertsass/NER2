@@ -1,0 +1,95 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace rsCore;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface FrameworkHookInterface {
+
+	function __construct( CoreClass $Object, $event, $method );
+	function getObject();
+	function getEvent();
+	function getMethod();
+	function call( $params );
+
+}
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ */
+class FrameworkHook implements FrameworkHookInterface {
+
+
+	private $_Object;
+	private $_event;
+	private $_method;
+
+
+	/* Private methods */
+
+	public function __construct( CoreClass $Object, $event, $method=null ) {
+		$this->_Object = $Object;
+		$this->_event = $event;
+		$this->_method = $method;
+	}
+
+
+	/* Public methods */
+
+	/** Gibt das eingeklinkte Object zurück
+	 * @return object
+	 */
+	public function getObject() {
+		return $this->_Object;
+	}
+
+
+	/** Gibt das Event zurück
+	 * @return string
+	 */
+	public function getEvent() {
+		return $this->_event;
+	}
+
+
+	/** Gibt die registrierte Methode zurück
+	 * @return string
+	 */
+	public function getMethod() {
+		return $this->_method;
+	}
+
+
+	/** Ruft auf dem eingeklinkten Objekten die für dieses Event registrierte Methode auf
+	 * @return mixed
+	 */
+	public function call( $params=null ) {
+		$method = $this->getMethod();
+
+		if( $params === null )
+			$params = array();
+		elseif( !is_array( $params ) || Core::functions()->arrayIsAssociative( $params ) )
+			$params = array( $params );
+		if( $method === null )
+			$method = $this->getEvent();
+
+		if( is_callable( array( $this->getObject(), $method ) ) ) {
+			return Core::callMethod( $this->getObject(), $method, $params );
+		}
+		return null;
+	}
+
+
+}

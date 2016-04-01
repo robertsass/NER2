@@ -1,0 +1,44 @@
+<?php
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @link http://www.brainedia.com
+ * @link http://robertsass.me
+ */
+
+namespace Templates;
+
+
+/**
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ * @internal
+ */
+interface APIInterface {
+
+	function build();
+
+}
+
+
+/** APITemplate class.
+ *
+ * @author Robert Sass <rs@brainedia.de>
+ * @copyright 2014-2015 Robert Sass
+ *
+ * @extends \rsCore\HTMLTemplate
+ */
+class API extends \rsCore\BaseTemplate implements APIInterface {
+
+
+	/** Gibt den Quelltext aus
+	 *
+	 * @access public
+	 * @return string
+	 */
+	public function build() {
+		new \Nightfever\API();
+	}
+
+
+}

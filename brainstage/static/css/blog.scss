@@ -1,0 +1,16 @@
+#main #blog {
+
+	article {
+		margin-bottom: 20px;
+
+		.meta {
+			color: #999;
+			margin: 10px 0;
+
+			& > span {
+				margin-right: 20px;
+			}
+		}
+	}
+
+}
