@@ -102,6 +102,7 @@ class Review extends \rsCore\DatabaseDatasetAbstract implements ReviewInterface,
 	 * @api
 	 */
 	public static function getSuitableReviews() {
+		static::getDatabaseConnection()->getConnection()->set_charset( 'utf8mb4' );
 		return self::getByColumns( array(
 			'suitable' => 1
 		), true );
